@@ -1,2 +1,5 @@
 # IDE stuff
 .vscode
+
+# Compilation stuff
+obj
