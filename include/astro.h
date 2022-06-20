@@ -1,6 +1,8 @@
 #ifndef ASTRO_H
 #define ASTRO_H
 
+#define PI 3.14159265359
+#define EXP 2.71828182846
 
 namespace kepler_orbits
 {

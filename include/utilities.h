@@ -6,16 +6,14 @@
 #define UA 149597870691.0
 #define DAY2SEC 86400.0
 
-enum class Planets{
-    MERCURY,
-    VENUS,
-    EARTH,
-    MARS,
-    JUPITER,
-    SATURN,
-    URANUS,
-    NEPTUNE
-};
+#define MERCURY 1
+#define VENUS 2
+#define EARTH 3
+#define MARS 4
+#define JUPITER 5
+#define SATURN 6
+#define URANUS 7
+#define NEPTUNE 8
 
 class Epoch{
 private:
