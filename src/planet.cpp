@@ -70,40 +70,56 @@ void Planet::get_position(double T_eph, float &xx, float &yy, float &zz) const{
 
     float T_pastCenJ2000 = (T_eph - 2451545.0)/36525;
 
+    // Orbital elements
     float a = this->a0 + this->acy * T_pastCenJ2000;
-    float M = this->L0 - this->long_peri0; // mean anomaly
-    float w = this->long_peri0 - this->long_node0; 
+    float e = this->e0 + this->ecy * T_pastCenJ2000;
+    float i = this->I0 + this->Icy * T_pastCenJ2000;
+    float L = this->L0 + this->Lcy * T_pastCenJ2000;
+    float p = this->long_peri0 + this->long_nodecy * T_pastCenJ2000;
+    float W = this->long_node0 + this->long_nodecy * T_pastCenJ2000;
 
+    // Convert angles to radians
+    i *= PI/180.f;
+    L *= PI/180.f;
+    p *= PI/180.f;
+    W *= PI/180.f;
+
+    float M = L - p; // mean anomaly
+    float w = p - W; // 
+    
     // Newton-Raphson in order to get the eccentricity
     float E = M;
     float dE = 0.f;
+    unsigned int iter = 0;
     while (true){
-        dE = (E - this->e0 * std::sin(E) - M)/(1 - this->e0 * std::cos(E));
+        dE = (E - e * std::sin(E) - M)/(1 - e * std::cos(E));
         E -= dE;
         if(std::abs(dE) < 1e-6){
             break;
         }
+        if(iter > 10000){
+            std::cout << "Iteration limit hit on N-R eccenticity anomaly computation." << std::endl;
+            break;
+        }
+        iter++;
     }
+
     // P, Q 2d coordinate system
-    float P = a * (std::cos(E) - this->e0);
-    float Q = a * std::sin(E) * std::sqrt(1 - std::pow(this->e0, 2));
+    float P = a * (std::cos(E) - e);
+    float Q = a * std::sin(E) * std::sqrt(1 - std::pow(e, 2));
 
     // rotate by argument of periapsis
     float x = std::cos(w) * P - std::sin(w) * Q;
     float y = std::sin(w) * P + std::cos(w) * Q;
     // rotate by inclination
-    float z = std::sin(this->I0) * y;
-    y = std::cos(this->I0) * y;
+    float z = std::sin(i) * y;
+    y = std::cos(i) * y;
     // rotate by longitude of ascending node
     float xtemp = x;
-    x = std::cos(w) * xtemp - std::sin(w) * y;
-    y = std::sin(w) * xtemp + std::cos(w) * y;
+    x = std::cos(W) * xtemp - std::sin(W) * y;
+    y = std::sin(W) * xtemp + std::cos(W) * y;
 
-
-    std::cout << "x: " << x << std::endl;
-    std::cout << "y: " << y << std::endl;
-    std::cout << "z: " << z << std::endl;
-
+    // Save in the output
     xx = x;
     yy = y;
     zz = z;
