@@ -59,7 +59,7 @@ void Planet::setParameters(const float param[6], const float param_cy[6]){
     this->long_nodecy = param_cy[5];
 }
 
-void Planet::get_position(double T_eph, float &xx, float &yy, float &zz) const{
+void Planet::get_position(double T_eph, double* r) const{
     /**
     * @brief Get position of planet on the orbit on a given JD date.
     * Epoch: Double representing the JD
@@ -120,11 +120,19 @@ void Planet::get_position(double T_eph, float &xx, float &yy, float &zz) const{
     y = std::sin(W) * xtemp + std::cos(W) * y;
 
     // Save in the output
-    xx = x;
-    yy = y;
-    zz = z;
+    r[0] = x*UA;
+    r[1] = y*UA;
+    r[2] = z*UA;
 }
 
-void Planet::get_velocity(double T_eph, float &x, float &y, float &z) const{
+void Planet::get_velocity(double T_eph, double* r) const{
+    /**
+    * @brief Get velocity of planet on the orbit on a given JD date.
+    * Epoch: Double representing the JD
+    * x : Store variable for x vel
+    * y : Store variable for y vel
+    * z : Store variable for z vel
+    */
+
 
 }

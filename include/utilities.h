@@ -5,6 +5,7 @@
 
 #define UA 149597870691.0
 #define DAY2SEC 86400.0
+#define MU_SUN 1.32712440018e+20
 
 #define MERCURY 1
 #define VENUS 2

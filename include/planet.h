@@ -22,8 +22,8 @@ public:
     Planet(int planet);
     ~Planet();
     void setParameters(const float param[6], const float param_cy[6]);
-    void get_position(double T_eph, float &x, float &y, float &z) const;
-    void get_velocity(double T_eph, float &x, float &y, float &z) const;
+    void get_position(double T_eph, double* r) const;
+    void get_velocity(double T_eph, double* r) const;
 };
 
 #endif //PLANET
