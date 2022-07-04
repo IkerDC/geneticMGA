@@ -9,4 +9,10 @@ struct UnknowPLanet : public std::exception {
     }
 };
 
+struct PlanetUnreferended : public std::exception {
+    const char* what() const throw () {
+        return "The planet instance redferenced on the current flyby instance has been destroyed. Nullptr.";
+    }
+};
+
 #endif //MY_EXCEPTIONS_H
