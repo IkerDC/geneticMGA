@@ -25,7 +25,7 @@ public:
     void set_incoming_v(double* v);
     void set_outgoing_v(double* v);
     void compute_flyby();
-    double* get_deltaV();
+    void get_deltaV(double* dv);
     double get_total_deltaV() const;
     float get_periphasis() const;
 };

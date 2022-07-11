@@ -25,6 +25,16 @@ namespace kepler_orbits
     static const float saturn_cy[6] = {-0.00125060, -0.00050991,  0.00193609, 1222.49362201, -0.41897216, -0.28867794};
     static const float uranus_cy[6] = {-0.00196176, -0.00004397, -0.00242939, 428.48202785, 0.40805281, 0.04240589};
     static const float neptune_cy[6] = {0.00026291, 0.00005105, 0.00035372, 218.45945325, -0.32241464, -0.00508664};
+
+    // Gravity parameter mu
+    static const double mercury_mu = 2.2032e13;
+    static const double venus_mu = 3.24859e14;
+    static const double earth_mu = 3.986004418e14;
+    static const double mars_mu = 4.282837e13;
+    static const double jupiter_mu = 1.26686534e17;
+    static const double saturn_mu = 3.7931187e16;
+    static const double uranus_mu = 6.836529e15;
+    static const double neptune_mu = 5.793939e15;
 } // namespace orbits    
     
     #endif //ASTRO_H

@@ -4,35 +4,35 @@ Planet::Planet(int planet){
     switch (planet)
     {
     case MERCURY:
-        this->setParameters(kepler_orbits::mercury, kepler_orbits::mercury_cy);
+        this->setParameters(kepler_orbits::mercury, kepler_orbits::mercury_cy, kepler_orbits::mercury_mu);
         break;
     
     case VENUS:
-        this->setParameters(kepler_orbits::venus, kepler_orbits::venus_cy);
+        this->setParameters(kepler_orbits::venus, kepler_orbits::venus_cy, kepler_orbits::venus_mu);
         break;
     
     case EARTH:
-        this->setParameters(kepler_orbits::earth, kepler_orbits::earth_cy);
+        this->setParameters(kepler_orbits::earth, kepler_orbits::earth_cy, kepler_orbits::earth_mu);
         break;
 
     case MARS:
-        this->setParameters(kepler_orbits::mars, kepler_orbits::mars_cy);
+        this->setParameters(kepler_orbits::mars, kepler_orbits::mars_cy, kepler_orbits::mars_mu);
         break;
 
     case JUPITER:
-        this->setParameters(kepler_orbits::jupiter, kepler_orbits::jupiter_cy);
+        this->setParameters(kepler_orbits::jupiter, kepler_orbits::jupiter_cy, kepler_orbits::jupiter_mu);
         break;
 
     case SATURN:
-        this->setParameters(kepler_orbits::saturn, kepler_orbits::saturn_cy);
+        this->setParameters(kepler_orbits::saturn, kepler_orbits::saturn_cy, kepler_orbits::saturn_mu);
         break;
 
     case URANUS:
-        this->setParameters(kepler_orbits::uranus, kepler_orbits::uranus_cy);
+        this->setParameters(kepler_orbits::uranus, kepler_orbits::uranus_cy, kepler_orbits::uranus_mu);
         break;
 
     case NEPTUNE:
-        this->setParameters(kepler_orbits::neptune, kepler_orbits::neptune_cy);
+        this->setParameters(kepler_orbits::neptune, kepler_orbits::neptune_cy, kepler_orbits::neptune_mu);
         break;
 
     default:
@@ -44,7 +44,10 @@ Planet::Planet(int planet){
 Planet::~Planet(){
 }
 
-void Planet::setParameters(const float param[6], const float param_cy[6]){
+void Planet::setParameters(const float param[6], const float param_cy[6], double mu){
+    this->mu = mu;
+
+    // Orbital parametres
     this->a0 = param[0];
     this->acy = param_cy[0];
     this->e0 = param[1];
@@ -59,7 +62,7 @@ void Planet::setParameters(const float param[6], const float param_cy[6]){
     this->long_nodecy = param_cy[5];
 }
 
-void Planet::get_position(double T_eph, double* r) const{
+void Planet::get_ephemeris(double T_eph, double* r, double* v) const{
     /**
     * @brief Get position of planet on the orbit on a given JD date.
     * Epoch: Double representing the JD
@@ -68,28 +71,28 @@ void Planet::get_position(double T_eph, double* r) const{
     * z : Store variable for z pos
     */
 
-    float T_pastCenJ2000 = (T_eph - 2451545.0)/36525;
+    double T_pastCenJ2000 = (T_eph - 2451545.0)/36525;
 
     // Orbital elements
-    float a = this->a0 + this->acy * T_pastCenJ2000;
-    float e = this->e0 + this->ecy * T_pastCenJ2000;
-    float i = this->I0 + this->Icy * T_pastCenJ2000;
-    float L = this->L0 + this->Lcy * T_pastCenJ2000;
-    float p = this->long_peri0 + this->long_nodecy * T_pastCenJ2000;
-    float W = this->long_node0 + this->long_nodecy * T_pastCenJ2000;
+    double a = this->a0 + this->acy * T_pastCenJ2000;
+    double e = this->e0 + this->ecy * T_pastCenJ2000;
+    double i = this->I0 + this->Icy * T_pastCenJ2000;
+    double L = this->L0 + this->Lcy * T_pastCenJ2000;
+    double p = this->long_peri0 + this->long_nodecy * T_pastCenJ2000;
+    double W = this->long_node0 + this->long_nodecy * T_pastCenJ2000;
 
     // Convert angles to radians
-    i *= PI/180.f;
-    L *= PI/180.f;
-    p *= PI/180.f;
-    W *= PI/180.f;
+    i *= PI/180.0;
+    L *= PI/180.0;
+    p *= PI/180.0;
+    W *= PI/180.0;
 
-    float M = L - p; // mean anomaly
-    float w = p - W; // 
+    double M = L - p; // mean anomaly
+    double w = p - W; // 
     
     // Newton-Raphson in order to get the eccentricity
-    float E = M;
-    float dE = 0.f;
+    double E = M;
+    double dE = 0.0;
     unsigned int iter = 0;
     while (true){
         dE = (E - e * std::sin(E) - M)/(1 - e * std::cos(E));
@@ -104,35 +107,23 @@ void Planet::get_position(double T_eph, double* r) const{
         iter++;
     }
 
-    // P, Q 2d coordinate system
-    float P = a * (std::cos(E) - e);
-    float Q = a * std::sin(E) * std::sqrt(1 - std::pow(e, 2));
+    // P, Q 2d coordinate system - Position
+    double P = a * (std::cos(E) - e);
+    double Q = a * std::sin(E) * std::sqrt(1 - std::pow(e, 2));
 
-    // rotate by argument of periapsis
-    float x = std::cos(w) * P - std::sin(w) * Q;
-    float y = std::sin(w) * P + std::cos(w) * Q;
-    // rotate by inclination
-    float z = std::sin(i) * y;
-    y = std::cos(i) * y;
-    // rotate by longitude of ascending node
-    float xtemp = x;
-    x = std::cos(W) * xtemp - std::sin(W) * y;
-    y = std::sin(W) * xtemp + std::cos(W) * y;
+    // P, Q 2d coordinate system - Velocity
+    double vP = - (a * std::sin(E) * this->Lcy) / (1 - e * std::cos(E));
+    double vQ = (a * std::cos(E) * std::sqrt(1 - e*e) * this->Lcy) / (1 - e * std::cos(E));
 
+    rotate_eph(w, W, i, P, Q, r); 
+    rotate_eph(w, W, i, vP, vQ, v);
+    
     // Save in the output
-    r[0] = x*UA;
-    r[1] = y*UA;
-    r[2] = z*UA;
-}
+    r[0] *= UA;
+    r[1] *= UA;
+    r[2] *= UA;
 
-void Planet::get_velocity(double T_eph, double* r) const{
-    /**
-    * @brief Get velocity of planet on the orbit on a given JD date.
-    * Epoch: Double representing the JD
-    * x : Store variable for x vel
-    * y : Store variable for y vel
-    * z : Store variable for z vel
-    */
-
-
+    v[0] *= CORRECTION;
+    v[1] *= CORRECTION;
+    v[2] *= CORRECTION;
 }

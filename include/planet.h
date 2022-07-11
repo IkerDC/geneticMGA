@@ -18,12 +18,11 @@ private:
     float long_node0, long_nodecy; // acending node lingitude
 
 public:
-    
+    double mu;
     Planet(int planet);
     ~Planet();
-    void setParameters(const float param[6], const float param_cy[6]);
-    void get_position(double T_eph, double* r) const;
-    void get_velocity(double T_eph, double* r) const;
+    void setParameters(const float param[6], const float param_cy[6], double mu);
+    void get_ephemeris(double T_eph, double* r, double* v) const;
 };
 
 #endif //PLANET
