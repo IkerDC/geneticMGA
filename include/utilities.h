@@ -45,5 +45,9 @@ static void rotate_eph(double w, double W, double i, double P, double Q, double*
     vec[1] = std::sin(W) * xtemp + std::cos(W) * vec[1];
 }
 
+static float patched_conic(const double& v_in, const double& ){
+
+}
+
 
 #endif //UTILITIES_H
