@@ -49,16 +49,24 @@ void FlyBy::compute_flyby(){
      * @brief Standart pacthech conic approximation to get required DeltaV at flyby periphasis.
      */
 
-    double v_in_rel; //Vincom
-    double v_out_rel; //Vou
+    double v_in_rel[3]; //Vincom
+    double v_out_rel[3]; //Vou
     
     // Relative velocities to the planet
-    v_in_rel = norm(v_in, this->v_planet);
-    v_out_rel = norm(v_out, this->v_planet);
+    //v_in_rel = norm(v_in, this->v_planet);
+    //v_out_rel = norm(v_out, this->v_planet);
 
+    for(unsigned int i = 0; i < 3; i++){
+        v_in_rel[i] = v_in[i] - this->v_planet[i];
+        v_out_rel[i] = v_out[i] - this->v_planet[i];
+    }
+
+    float dV = fb_vel(v_in_rel, v_out_rel, 643428000.0,this->planet->mu);
+
+    float a = 0;
     // semi-major axis of trajectories
-    double a_in = -this->planet->mu/(v_in_rel * v_in_rel);
-    double a_out = -this->planet->mu/(v_out_rel * v_out_rel);
+    double a_in = -this->planet->mu/(norm2(v_in_rel)*norm2(v_in_rel));
+    double a_out = -this->planet->mu/(norm2(v_out_rel)*norm2(v_out_rel));
 
     //N-R to solve the eccentricity outwards
     float e_out = 1.5f; //Initial value (from paper)

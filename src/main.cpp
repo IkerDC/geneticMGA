@@ -2,60 +2,43 @@
 #include "planet.h"
 #include "flyby.h"
 #include "pagmo/Lambert.h"
+#include "orbital_mechanics.h"
 
 
 int main(int argc, char *argv[]){
     // SIMULATE VOYAGER
     Planet earth = Planet(EARTH);
-    Planet jupiter = Planet(JUPITER);
-    Planet saturn = Planet(SATURN);
+    Planet venus = Planet(VENUS);
+    //Planet jupiter = Planet(JUPITER);
+    //Planet saturn = Planet(SATURN);
 
-    float t1 = 2443390.1;
-    float t2 = 2444008.393;
-    float t3 = 2444555.026;
+    float t1 = 2447848.5;
+    float t2 = 2447945.5;
+    float t3 = 2448218.5;
+    float t4 = 2448944.5;
 
     double r_earth[3], v_earth[3], v_dep_earth[3], v_arr_earth[3];
-    double r_jupiter[3], v_jupiter[3], v_dep_jupiter[3], v_arr_jupiter[3];
-    double r_saturn[3], v_saturn[3], v_dep_saturn[3], v_arr_saturn[3];
+    double r_earth_2[3], v_earth_2[3], v_dep_earth_2[3], v_arr_earth_2[3];
+    double r_earth_3[3], v_earth_3[3], v_dep_earth_3[3], v_arr_earth_3[3];
+    double r_venus[3], v_venus[3], v_dep_venus[3], v_arr_venus[3];
 
     float dt1 = (t2-t1)*DAY2SEC;
     float dt2 = (t3-t2)*DAY2SEC;
+    float dt3 = (t4-t3)*DAY2SEC;
 
-    int lw = 0; // long way, i.e. less dv
-    earth.get_ephemeris(t1, r_earth, v_earth);
-    jupiter.get_ephemeris(t2, r_jupiter, v_jupiter);
-    saturn.get_ephemeris(t3, r_saturn, v_saturn);
+    int lw = 1; // long way, i.e. less dv
+    orbit::ephemeris(earth, t1, r_earth, v_earth);
+    orbit::ephemeris(venus, t2, r_venus, v_venus);
+    orbit::ephemeris(earth, t3, r_earth_2, v_earth_2);
+    orbit::ephemeris(earth, t4, r_earth_3, v_earth_3);
 
     double a, p, theta;
     int iter;
-    double rE[3] = {142894308003.52066, -48428290555.142769, -2430283.7650731262};
-    double rJ[3] = {-543656481505.61536, 579793743395.7583, 9786902396.7249565};
-    double rS[3] = {-1419710545425.1218, -53519710277.703804, 57358162162.15981};
+    LambertI(r_earth, r_venus, dt1, MU_SUN, lw, v_dep_earth, v_arr_venus, a, p, theta, iter); //good
+    LambertI(r_venus, r_earth_2, dt2, MU_SUN, lw, v_dep_venus, v_arr_earth_2, a, p, theta, iter); 
+    LambertI(r_earth_2, r_earth_3, dt3, MU_SUN, lw, v_dep_earth_2, v_arr_earth_3, a, p, theta, iter); 
 
-    LambertI(rE, rJ, dt1, MU_SUN, lw, v_dep_earth, v_arr_jupiter, a, p, theta, iter);
-    LambertI(r_jupiter, r_saturn, dt2, MU_SUN, lw, v_dep_jupiter, v_arr_saturn, a, p, theta, iter);
-    
-    std::cout << "Jupiter arriving speed from lambert" << std::endl;
-    for(unsigned int i = 0; i < 3; i++){
-        std::cout<< v_arr_jupiter[i] << std::endl;
-    }
-    std::cout << "Jupiter departure speed from lambert" << std::endl;
-    for(unsigned int i = 0; i < 3; i++){
-        std::cout<< v_dep_jupiter[i] << std::endl;
-    }
-    
-    // Now lets patch this togheter
-    FlyBy flybyMG = FlyBy(&jupiter, dt1);
-    flybyMG.set_planet_v(v_jupiter);
-    flybyMG.set_incoming_v(v_arr_jupiter);
-    flybyMG.set_outgoing_v(v_dep_jupiter);
-    flybyMG.compute_flyby();
-    
-    // std::cout << " **** Flyby info: " << std::endl;
-    // std::cout << "Periphasis r: "<< flybyMG.get_periphasis() << std::endl;
-    // double dv[3];
-    // flybyMG.get_deltaV(dv);
-    // for(unsigned int i = 0; i < 3;i++){
-    //     std::cout << dv[i] << std::endl;
-    // }
+    double dV, dV2, delta, peri;
+    orbit::patched_conic(v_arr_venus, v_dep_venus, v_venus, venus, dV, delta, peri);
+    orbit::patched_conic(v_arr_earth_2, v_dep_earth_2, v_earth_2, earth, dV, delta, peri);
 }

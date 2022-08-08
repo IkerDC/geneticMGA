@@ -1,6 +1,20 @@
 #ifndef ASTRO_H
 #define ASTRO_H
 
+#define UA 149597870691.0
+#define DAY2SEC 86400.0
+#define MU_SUN 1.32712440018e+20
+#define CORRECTION 0.827363
+
+#define MERCURY 1
+#define VENUS 2
+#define EARTH 3
+#define MARS 4
+#define JUPITER 5
+#define SATURN 6
+#define URANUS 7
+#define NEPTUNE 8
+
 #define PI 3.14159265359
 #define EXP 2.71828182846
 
