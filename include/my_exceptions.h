@@ -15,4 +15,10 @@ struct PlanetUnreferended : public std::exception {
     }
 };
 
+struct negativeTime : public std::exception {
+    const char* what() const throw () {
+        return "Time cannot be negative.";
+    }
+};
+
 #endif //MY_EXCEPTIONS_H
