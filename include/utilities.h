@@ -15,7 +15,7 @@ double vec2(const double* v1);
 
 void rotate_eph(double w, double W, double i, double P, double Q, double* vec);
 
-void vet_prod(const double* v1, const double* v2, double* out);
+void cross_prod(const double* v1, const double* v2, double* out);
 
 double tofabn(const double &sigma,const double &alfa,const double &beta);
 

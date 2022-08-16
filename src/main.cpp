@@ -7,8 +7,6 @@ int main(int argc, char *argv[]){
     // SIMULATE VOYAGER
     Planet earth = Planet(EARTH);
     Planet venus = Planet(VENUS);
-    //Planet jupiter = Planet(JUPITER);
-    //Planet saturn = Planet(SATURN);
 
     float t1 = 2447848.5;
     float t2 = 2447945.5;
@@ -24,23 +22,14 @@ int main(int argc, char *argv[]){
     float dt2 = (t3-t2)*DAY2SEC;
     float dt3 = (t4-t3)*DAY2SEC;
 
-    int lw = 0; // long way, i.e. less dv
     orbit::ephemeris(earth, t1, r_earth, v_earth);
     orbit::ephemeris(venus, t2, r_venus, v_venus);
     orbit::ephemeris(earth, t3, r_earth_2, v_earth_2);
     orbit::ephemeris(earth, t4, r_earth_3, v_earth_3);
 
-    double a, p, theta;
-    int iter;
-    lw = 0;
-    //LambertI(r_earth, r_venus, dt1, MU_SUN, lw, v_dep_earth, v_arr_venus, a, p, theta, iter); //good
-    orbit::lambert(r_earth, r_venus, dt1, MU_SUN, false, v_dep_earth, v_arr_venus);
-    lw = 1; 
-    //LambertI(r_venus, r_earth_2, dt2, MU_SUN, lw, v_dep_venus, v_arr_earth_2, a, p, theta, iter); //good
-    orbit::lambert(r_venus, r_earth_2, dt2, MU_SUN, true, v_dep_venus, v_arr_earth_2);
-    lw = 1; 
-    //LambertI(r_earth_2, r_earth_3, dt3, MU_SUN, lw, v_dep_earth_2, v_arr_earth_3, a, p, theta, iter); 
-    orbit::lambert(r_earth_2, r_earth_3, dt3, MU_SUN, true, v_dep_earth_2, v_arr_earth_3);
+    orbit::lambert(r_earth, r_venus, dt1, MU_SUN, v_dep_earth, v_arr_venus);
+    orbit::lambert(r_venus, r_earth_2, dt2, MU_SUN, v_dep_venus, v_arr_earth_2);
+    orbit::lambert(r_earth_2, r_earth_3, dt3, MU_SUN, v_dep_earth_2, v_arr_earth_3);
 
     double dV, dV2, delta, peri;
     orbit::patched_conic(v_arr_venus, v_dep_venus, v_venus, venus, dV, delta, peri);

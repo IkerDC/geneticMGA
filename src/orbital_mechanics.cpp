@@ -66,15 +66,14 @@ void orbit::ephemeris(const Planet& planet, const double T, double* r, double* v
 }
 
 
-void orbit::lambert(const double *r1_in, const double *r2_in, double t, const double &mu, bool prograde, double *v1, double *v2){
+void orbit::lambert(const double *r1_in, const double *r2_in, double t, const double &mu, double *v1, double *v2){
     /**
      * @brief Lambert solver. Given the ephemeris of two planets, and time of flight T.
      * It computes the heliocentric transfer speeds. Essentialy transfer orbit in heliocentric reference frame.
      * Reference: 
-     * - This algorithm froms part of the PaGMO: ESA's Open-source for massiveñy parallel engineering optimisation.
+     * - This algorithm froms part of the PaGMO: ESA's Open-source for massively parallel engineering optimisation.
      * @see F. Biscani, D.Izzo, C. Hong Yam: A GLOBAL OPTIMISATION TOOLBOX FOR MASSIVELY PARALLEL ENGINEERING OPTIMISATION
      */
-
     double	V,T,
 	r2_mod = 0.0,    // R2 module
 	dot_prod = 0.0, // dot product
@@ -88,6 +87,11 @@ void orbit::lambert(const double *r1_in, const double *r2_in, double t, const do
 	double r1[3], r2[3], r2_vers[3];
 	double ih_dum[3], ih[3], dum[3];
     double theta, a, p;
+
+	// direction decition
+	double lw_out[3];
+	cross_prod(r1_in, r2_in, lw_out);
+	bool lw = lw_out[2] < 0; // z pomponent of result -> left/rigth if angle > 180º
 
 	// Increasing the tolerance does not bring any advantage as the
 	// precision is usually greater anyway (due to the rectification of the tof
@@ -127,7 +131,7 @@ void orbit::lambert(const double *r1_in, const double *r2_in, double t, const do
 
 	theta = std::acos(dot_prod/r2_mod);
 
-	if (prograde)
+	if (lw)
 		theta= 2 * std::acos(-1.0) - theta;
 
 	c = std::sqrt(1 + r2_mod*(r2_mod - 2.0 * std::cos(theta)));
@@ -141,15 +145,15 @@ void orbit::lambert(const double *r1_in, const double *r2_in, double t, const do
 	//  inn2=.5233;     //second guess point
 	x1=std::log(0.4767);
 	x2=std::log(1.5233);
-	y1=std::log(x2tof(-.5233, s, c, prograde)) - std::log(t);
-	y2=std::log(x2tof(.5233, s, c, prograde)) - std::log(t);
+	y1=std::log(x2tof(-.5233, s, c, lw)) - std::log(t);
+	y2=std::log(x2tof(.5233, s, c, lw)) - std::log(t);
 
 	// Regula-falsi iterations
 	err = 1;
 	while ((err>tolerance) && (y1 != y2))
 	{
 		x_new = (x1*y2-y1*x2)/(y2-y1);
-		y_new = std::log(x2tof(std::exp(x_new)-1, s, c, prograde)) - std::log(t);
+		y_new = std::log(x2tof(std::exp(x_new)-1, s, c, lw)) - std::log(t);
 		x1 = x2;
 		y1 = y2;
 		x2 = x_new;
@@ -171,7 +175,7 @@ void orbit::lambert(const double *r1_in, const double *r2_in, double t, const do
 	if (x < 1)  // ellipse
 	{
 		beta = 2 * std::asin (std::sqrt( (s-c)/(2*a) ));
-		if (prograde) beta = -beta;
+		if (lw) beta = -beta;
 		alfa = 2*std::acos(x);
 		psi = (alfa-beta)/2;
 		eta2 = 2 * a * std::pow(std::sin(psi),2)/s;
@@ -180,7 +184,7 @@ void orbit::lambert(const double *r1_in, const double *r2_in, double t, const do
 	else       // hyperbola
 	{
 		beta = 2*std::asinh(sqrt((c-s)/(2*a)));
-		if (prograde) beta = -beta;
+		if (lw) beta = -beta;
 		alfa = 2*std::acosh(x);
 		psi = (alfa-beta)/2;
 		eta2 = -2 * a * std::pow(std::sinh(psi),2)/s;
@@ -190,10 +194,10 @@ void orbit::lambert(const double *r1_in, const double *r2_in, double t, const do
 	// parameter of the solution
 	p = ( r2_mod / (am * eta2) ) * std::pow(std::sin(theta/2), 2);
 	sigma1 = (1/(eta * std::sqrt(am)))* (2 * lambda * am - (lambda + x * eta));
-	vet_prod(r1, r2, ih_dum);
+	cross_prod(r1, r2, ih_dum);
 	vers(ih_dum, ih);
 
-	if (prograde)
+	if (lw)
 	{
 		for (i = 0; i < 3;i++)
 			ih[i] = -ih[i];
@@ -201,7 +205,7 @@ void orbit::lambert(const double *r1_in, const double *r2_in, double t, const do
 
 	vr1 = sigma1;
 	vt1 = sqrt(p);
-	vet_prod(ih, r1, dum);
+	cross_prod(ih, r1, dum);
 
 	for (i = 0;i < 3 ;i++)
 		v1[i] = vr1 * r1[i] + vt1 * dum[i];
@@ -209,7 +213,7 @@ void orbit::lambert(const double *r1_in, const double *r2_in, double t, const do
 	vt2 = vt1 / r2_mod;
 	vr2 = -vr1 + (vt1 - vt2)/tan(theta/2);
 	vers(r2, r2_vers);
-	vet_prod(ih, r2_vers, dum);
+	cross_prod(ih, r2_vers, dum);
 	for (i = 0;i < 3 ;i++)
 		v2[i] = vr2 * r2[i] / r2_mod + vt2 * dum[i];
 
