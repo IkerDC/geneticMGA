@@ -17,9 +17,14 @@ public:
     float long_node0, long_nodecy; // acending node lingitude
     double mu;
 
-    Planet(int planet);
+    float at;
+    double position[3];
+
+    Planet(int planet, float at);
     ~Planet();
+    
     void setParameters(const float param[6], const float param_cy[6], double mu);
+    void compute_eph();
 };
 
 #endif //PLANET

@@ -124,3 +124,15 @@ void rotate_eph(double w, double W, double i, double P, double Q, double* vec){
     vec[1] = std::sin(W) * xtemp + std::cos(W) * vec[1];
 }
 
+float greg2jd(const std::string date){
+    struct tm tm;
+    strptime(date.c_str(), "%Y-%m-%d", &tm);
+    double jd = 2415020.5; // we start at 1900-01-01
+    // TODO
+
+    
+}
+
+std::string jd2greg(const float date){
+
+}

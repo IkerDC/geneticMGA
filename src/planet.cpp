@@ -1,6 +1,7 @@
 #include "planet.h"
 
-Planet::Planet(int planet){
+Planet::Planet(int planet, float){
+    this->at = at;
     switch (planet)
     {
     case MERCURY:
@@ -60,4 +61,8 @@ void Planet::setParameters(const float param[6], const float param_cy[6], double
     this->long_pericy = param_cy[4];
     this->long_node0 = param[5];
     this->long_nodecy = param_cy[5];
+}
+
+void Planet::compute_eph(){
+
 }

@@ -2,6 +2,8 @@
 #define UTILITIES_H
 
 #include <cmath>
+#include <string>
+#include <ctime>
 
 void minus2(const double* v1, const double* v2, double* out);
 
@@ -22,5 +24,9 @@ double tofabn(const double &sigma,const double &alfa,const double &beta);
 void vers(const double* v1, double* v2);
 
 double x2tof(const double &x, const double &s, const double &c, bool prograde);
+
+float greg2jd(const std::string date);
+
+std::string jd2greg(const float date);
 
 #endif //UTILITIES_H
