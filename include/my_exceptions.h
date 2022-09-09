@@ -21,4 +21,10 @@ struct negativeTime : public std::exception {
     }
 };
 
+struct distinctFlybyPlanet : public std::exception {
+    const char* what() const throw () {
+        return "Incoming and departure planet on a flyby are not the same. Transfer must be arriving and departing at the same body.";
+    }
+};
+
 #endif //MY_EXCEPTIONS_H

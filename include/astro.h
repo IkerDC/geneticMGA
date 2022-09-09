@@ -49,6 +49,15 @@ namespace kepler_orbits
     static const double saturn_mu = 3.7931187e16;
     static const double uranus_mu = 6.836529e15;
     static const double neptune_mu = 5.793939e15;
-} // namespace orbits    
+} // namespace kepler_orbits
+
+struct orbitalParameters{
+    float a0, acy; // semi-major axis
+    float e0, ecy; // eccentricity
+    float I0, Icy; // inlcinations
+    float L0, Lcy; // mean longitude
+    float long_peri0, long_pericy; // longitude of preiphasis
+    float long_node0, long_nodecy; // acending node lingitude
+};
     
-    #endif //ASTRO_H
+#endif //ASTRO_H

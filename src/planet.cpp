@@ -1,6 +1,6 @@
 #include "planet.h"
 
-Planet::Planet(int planet, float){
+Planet::Planet(int planet, float at){
     this->at = at;
     switch (planet)
     {
@@ -49,20 +49,23 @@ void Planet::setParameters(const float param[6], const float param_cy[6], double
     this->mu = mu;
 
     // Orbital parametres
-    this->a0 = param[0];
-    this->acy = param_cy[0];
-    this->e0 = param[1];
-    this->ecy = param_cy[1];
-    this->I0 = param[2];
-    this->Icy = param_cy[2];
-    this->L0 = param[3];
-    this->Lcy = param_cy[3];
-    this->long_peri0 = param[4];
-    this->long_pericy = param_cy[4];
-    this->long_node0 = param[5];
-    this->long_nodecy = param_cy[5];
+    this->prm.a0 = param[0];
+    this->prm.acy = param_cy[0];
+    this->prm.e0 = param[1];
+    this->prm.ecy = param_cy[1];
+    this->prm.I0 = param[2];
+    this->prm.Icy = param_cy[2];
+    this->prm.L0 = param[3];
+    this->prm.Lcy = param_cy[3];
+    this->prm.long_peri0 = param[4];
+    this->prm.long_pericy = param_cy[4];
+    this->prm.long_node0 = param[5];
+    this->prm.long_nodecy = param_cy[5];
 }
 
 void Planet::compute_eph(){
-
+    /**
+     * @brief Utilizes the ephemris function to set compute the ephemeris a the predifined date set in the class.
+     */
+    orbit::ephemeris(this->prm, this->at, this->r_eph, this->v_eph);
 }

@@ -15,7 +15,7 @@ SOURCES := $(wildcard src/*.cpp)
 OBJECTS := $(patsubst src%,obj%, $(patsubst %.c,%.o, $(patsubst %.cpp,%.o,$(SOURCES))))
 
 INCLUDE := -Iinclude
-#LIBS := 
+LIBS := -lcurl
 
 
 all: $(OBJECTS)

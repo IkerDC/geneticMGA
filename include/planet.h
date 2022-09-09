@@ -6,19 +6,15 @@
 
 #include "astro.h"
 #include "my_exceptions.h"
+#include "orbital_mechanics.h"
 
 class Planet{
 public:
-    float a0, acy; // semi-major axis
-    float e0, ecy; // eccentricity
-    float I0, Icy; // inlcinations
-    float L0, Lcy; // mean longitude
-    float long_peri0, long_pericy; // longitude of preiphasis
-    float long_node0, long_nodecy; // acending node lingitude
+    orbitalParameters prm;
     double mu;
-
     float at;
-    double position[3];
+    double r_eph[3];
+    double v_eph[3];
 
     Planet(int planet, float at);
     ~Planet();

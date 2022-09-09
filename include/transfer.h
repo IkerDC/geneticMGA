@@ -19,7 +19,7 @@ public:
     Transfer();
     ~Transfer();
 
-    void add_planets(const Planet& p1, const Planet& p2);
+    void add_planets(Planet* p1, Planet* p2);
     void compute_transfer();
 
     void print() const;

@@ -1,8 +1,7 @@
 #include "orbital_mechanics.h"
-#include "utilities.h"
 
 
-void orbit::ephemeris(const Planet& planet, const double T, double* r, double* v){ //Outputs
+void orbit::ephemeris(const orbitalParameters& planet_prm, const double T, double* r, double* v){ //Outputs
     /**
      * @brief Computes the ephemeris of a given planet. 
      * Returns position and speed.
@@ -11,12 +10,12 @@ void orbit::ephemeris(const Planet& planet, const double T, double* r, double* v
     double T_pastCenJ2000 = (T - 2451545.0)/36525;
 
     // Orbital elements
-    double a = planet.a0 + planet.acy * T_pastCenJ2000;
-    double e = planet.e0 + planet.ecy * T_pastCenJ2000;
-    double i = planet.I0 + planet.Icy * T_pastCenJ2000;
-    double L = planet.L0 + planet.Lcy * T_pastCenJ2000;
-    double p = planet.long_peri0 + planet.long_nodecy * T_pastCenJ2000;
-    double W = planet.long_node0 + planet.long_nodecy * T_pastCenJ2000;
+    double a = planet_prm.a0 + planet_prm.acy * T_pastCenJ2000;
+    double e = planet_prm.e0 + planet_prm.ecy * T_pastCenJ2000;
+    double i = planet_prm.I0 + planet_prm.Icy * T_pastCenJ2000;
+    double L = planet_prm.L0 + planet_prm.Lcy * T_pastCenJ2000;
+    double p = planet_prm.long_peri0 + planet_prm.long_nodecy * T_pastCenJ2000;
+    double W = planet_prm.long_node0 + planet_prm.long_nodecy * T_pastCenJ2000;
 
     // Convert angles to radians
     i *= PI/180.0;
@@ -49,8 +48,8 @@ void orbit::ephemeris(const Planet& planet, const double T, double* r, double* v
     double Q = a * std::sin(E) * std::sqrt(1 - std::pow(e, 2));
 
     // P, Q 2d coordinate system - Velocity
-    double vP = - (a * std::sin(E) * planet.Lcy) / (1 - e * std::cos(E));
-    double vQ = (a * std::cos(E) * std::sqrt(1 - e*e) * planet.Lcy) / (1 - e * std::cos(E));
+    double vP = - (a * std::sin(E) * planet_prm.Lcy) / (1 - e * std::cos(E));
+    double vQ = (a * std::cos(E) * std::sqrt(1 - e*e) * planet_prm.Lcy) / (1 - e * std::cos(E));
 
     rotate_eph(w, W, i, P, Q, r); 
     rotate_eph(w, W, i, vP, vQ, v);
@@ -226,7 +225,7 @@ void orbit::lambert(const double *r1_in, const double *r2_in, double t, const do
 	p *= R;
 }
 
-void orbit::patched_conic(const double* Vin, const double* Vout, const double* Vplanet, const Planet& planet, //Input
+void orbit::patched_conic(const double* Vin, const double* Vout, const double* Vplanet, const double mu, //Input
                             double& dV, double& delta, double& peri){ //Output
     /**
      * @brief Used to pacth the two Lamebrt solutions. 
@@ -242,15 +241,15 @@ void orbit::patched_conic(const double* Vin, const double* Vout, const double* V
     minus2(Vin, Vplanet, VinRel);
     minus2(Vout, Vplanet, VoutRel);
 
-    double ain = -planet.mu/vec2(VinRel);
-    double aout = -planet.mu/vec2(VoutRel);
+    double ain = -mu/vec2(VinRel);
+    double aout = -mu/vec2(VoutRel);
     double e;
 
 
     delta = std::acos(dot_prod(VinRel, VoutRel)/(norm(VinRel) * norm(VoutRel)));
     e = 1/std::sin((delta/2));
     peri = aout*(1-e); 
-    dV = std::fabs(std::sqrt(vec2(VinRel) + ((2*planet.mu)/(peri))) - std::sqrt(vec2(VoutRel) + ((2*planet.mu)/(peri))));
+    dV = std::fabs(std::sqrt(vec2(VinRel) + ((2*mu)/(peri))) - std::sqrt(vec2(VoutRel) + ((2*mu)/(peri))));
 
     std::cout << "Relative velocity Vin: " << norm(VinRel) << " [m/s]"<< std::endl;
     std::cout << "Relative velocity Vout: " << norm(VoutRel) << " [m/s]"<< std::endl;

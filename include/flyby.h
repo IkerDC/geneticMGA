@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "transfer.h"
+#include "planet.h"
 
 class Flyby{
 public:
@@ -19,7 +20,7 @@ public:
     Flyby();
     ~Flyby();
 
-    void add_planet_transfer(const Planet& p, const Transfer& t1, const Transfer& t2);
+    void add_planet_transfer(Transfer* t1, Transfer* t2);
     void compute_flyby();
 };
 
