@@ -6,6 +6,8 @@
 #include <ctime>
 #include "curl/curl.h"
 
+#include "astro.h"
+
 void minus2(const double* v1, const double* v2, double* out);
 
 double norm(const double* v1);
@@ -26,8 +28,13 @@ void vers(const double* v1, double* v2);
 
 double x2tof(const double &x, const double &s, const double &c, bool prograde);
 
+double deg2rad(const double x);
+
+double rad2deg(const double x);
+
 float date2jd(const std::string date);
 
 std::string jd2date(const float date);
+
 
 #endif //UTILITIES_H

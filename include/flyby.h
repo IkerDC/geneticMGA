@@ -15,13 +15,14 @@ public:
     Transfer* trans2;
     double v_in_rel[3];
     double v_out_rel[3];
-    double delta, peri, e, dV;
+    double delta, peri, dV;
     
     Flyby();
     ~Flyby();
 
     void add_planet_transfer(Transfer* t1, Transfer* t2);
     void compute_flyby();
+    void print() const;
 };
 
 #endif //FLYBY_H

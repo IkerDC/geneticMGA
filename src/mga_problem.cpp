@@ -1,4 +1,4 @@
-
+#include <stdlib.h>
 #include "mga_problem.h"
 
 MGAProblem::MGAProblem(){
@@ -72,9 +72,60 @@ bool MGAProblem::isSolutionValid() const{
 }
 
 void MGAProblem::plot() const{
+    /**
+     * @brief Plots the solution to the problem
+     * Loads the solution to a json file. Call to an pyhton script that interprets it and plots the problem solution.
+     */
+
+    // Fills the json file.
+    nlohmann::json visual_js = {
+        {"Planets", {}},
+        {"Transfers", {}}
+    };
+
+    // Fill the planets and the coordinates
+    for(const auto& planet: this->planets){
+        visual_js["Planets"].push_back({
+            {"Name", planet.name},
+            {"At", planet.at},
+            {"Coordinates", planet.r_eph},
+            {"Color", "gray"}
+        });
+    }
+
+    // Fill the transfers
+    for(const auto& transfer: this->transfers){
+        visual_js["Transfers"].push_back({
+            {"Velocity", transfer.v_dep},
+            {"Color", "teal"}
+        });
+    }
+
+    // Write file
+    std::ofstream outfile("visuals/visualize.json");
+    outfile << std::setw(4) << visual_js << std::endl;
+
+    // call excutable
+    int status = system("python3 visuals/main.py &");
+
+    if (status != EXIT_SUCCESS){
+        std::cout << "Error code while executing the python visualizer. Code: " << status << std::endl;
+    }
 
 }
 
 void MGAProblem::print() const{
+    /**
+     * @brief Pretty print of the whole problem.
+     */
+    std::cout << "0 ==--> DEPARTURE from "<< this->planets.at(0).name <<" ------->" << std::endl;
+    
+    for(const auto& fb: this->flybys){
+        std::cout << "~~> 0 ~~> FLYBY at Planet: " << fb.planet->name << " ---->" << std::endl;
+        fb.print();
+    }
+
+    std::cout << "==--> 0 ARRIVAL at "<< this->planets.back().name <<" ---------->" << std::endl;
+
     
 }

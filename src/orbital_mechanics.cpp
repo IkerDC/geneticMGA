@@ -17,11 +17,11 @@ void orbit::ephemeris(const orbitalParameters& planet_prm, const double T, doubl
     double p = planet_prm.long_peri0 + planet_prm.long_nodecy * T_pastCenJ2000;
     double W = planet_prm.long_node0 + planet_prm.long_nodecy * T_pastCenJ2000;
 
-    // Convert angles to radians
-    i *= PI/180.0;
-    L *= PI/180.0;
-    p *= PI/180.0;
-    W *= PI/180.0;
+    // Convert deg to radians
+    i = deg2rad(i);
+    L = deg2rad(L);
+    p = deg2rad(p);
+    W = deg2rad(W);
 
     double M = L - p;
     double w = p - W; 
@@ -234,7 +234,6 @@ void orbit::patched_conic(const double* Vin, const double* Vout, const double* V
      */
 
     //Convert to planetocentric velocities. relative hyperbolic. 
-    std::cout << "Flyby at: -----------------------------" << std::endl;
     double VinRel[3];
     double VoutRel[3];
 
@@ -250,12 +249,4 @@ void orbit::patched_conic(const double* Vin, const double* Vout, const double* V
     e = 1/std::sin((delta/2));
     peri = aout*(1-e); 
     dV = std::fabs(std::sqrt(vec2(VinRel) + ((2*mu)/(peri))) - std::sqrt(vec2(VoutRel) + ((2*mu)/(peri))));
-
-    std::cout << "Relative velocity Vin: " << norm(VinRel) << " [m/s]"<< std::endl;
-    std::cout << "Relative velocity Vout: " << norm(VoutRel) << " [m/s]"<< std::endl;
-    std::cout << "Turning angle: " << delta << " [rad]"<< std::endl;
-    std::cout << "Eccentricity " << e << std::endl;
-    std::cout << "Periapsis radius " << peri << " [m]"<< std::endl;
-    std::cout << "Total dV " << dV << " [m/s]"<< std::endl;
-    
 }

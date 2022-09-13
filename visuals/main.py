@@ -45,7 +45,7 @@ def visualize(planets, transfers):
 def main():
     """ Main call. All the file parsing and plotting"""
 
-    with open('visualize.json', 'rb') as f:
+    with open('visuals/visualize.json', 'rb') as f:
         visual_js = json.load(f)
 
     planets, transfers = load(visual_js)

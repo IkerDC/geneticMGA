@@ -5,34 +5,42 @@ Planet::Planet(int planet, float at){
     switch (planet)
     {
     case MERCURY:
+        this->name = "mercury";
         this->setParameters(kepler_orbits::mercury, kepler_orbits::mercury_cy, kepler_orbits::mercury_mu);
         break;
     
     case VENUS:
+        this->name = "venus";
         this->setParameters(kepler_orbits::venus, kepler_orbits::venus_cy, kepler_orbits::venus_mu);
         break;
     
     case EARTH:
+        this->name = "earth";
         this->setParameters(kepler_orbits::earth, kepler_orbits::earth_cy, kepler_orbits::earth_mu);
         break;
 
     case MARS:
+        this->name = "mars";
         this->setParameters(kepler_orbits::mars, kepler_orbits::mars_cy, kepler_orbits::mars_mu);
         break;
 
     case JUPITER:
+        this->name = "jupiter";
         this->setParameters(kepler_orbits::jupiter, kepler_orbits::jupiter_cy, kepler_orbits::jupiter_mu);
         break;
 
     case SATURN:
+        this->name = "saturn";
         this->setParameters(kepler_orbits::saturn, kepler_orbits::saturn_cy, kepler_orbits::saturn_mu);
         break;
 
     case URANUS:
+        this->name = "uranus";
         this->setParameters(kepler_orbits::uranus, kepler_orbits::uranus_cy, kepler_orbits::uranus_mu);
         break;
 
     case NEPTUNE:
+        this->name = "neptune";
         this->setParameters(kepler_orbits::neptune, kepler_orbits::neptune_cy, kepler_orbits::neptune_mu);
         break;
 

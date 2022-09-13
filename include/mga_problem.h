@@ -5,6 +5,8 @@
 #include <string>
 #include <iostream>
 #include <ostream>
+#include <fstream>
+#include "nlohmann/json.hpp"
 
 #include "utilities.h"
 #include "visualize.h"

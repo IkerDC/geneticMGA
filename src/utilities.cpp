@@ -124,6 +124,15 @@ void rotate_eph(double w, double W, double i, double P, double Q, double* vec){
     vec[1] = std::sin(W) * xtemp + std::cos(W) * vec[1];
 }
 
+
+double deg2rad(const double x){
+    return x*PI/180.0;
+}
+
+double rad2deg(const double x){
+    return x*180.0/PI;
+}
+
 float date2jd(const std::string date){
     /**
      * @brief Converts a given date formated as YYYY-MM-DD to JD using NASA's JPL Horizions API

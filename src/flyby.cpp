@@ -28,4 +28,17 @@ void Flyby::compute_flyby(){
      * @brief Computes the flyby. 
      */
     orbit::patched_conic(this->trans1->v_arr, this->trans2->v_dep, this->planet->v_eph, this->planet->mu, this->dV, this->delta, this->peri);
+    minus2(this->trans1->v_arr, this->planet->v_eph, this->v_in_rel); // change this, shouldn't be done here
+    minus2(this->trans2->v_dep, this->planet->v_eph, this->v_out_rel); // change this, shouldn't be done here
+}
+
+void Flyby::print() const{
+    /**
+     * @brief Pretty-rint the solution.
+     */
+    std::cout << "  Incoming velocity (relative): " << norm(this->v_in_rel) << " m/s" << std::endl;
+    std::cout << "  Outgoing velocity (relative): " << norm(this->v_out_rel) << " m/s" << std::endl;
+    std::cout << "  Turning angle: " << rad2deg(this->delta) << "º"<< std::endl;
+    std::cout << "  Periapsis rad: " << this->peri << " m"<< std::endl;
+    std::cout << "  Total dV     : " << this->dV << " m/s"<< std::endl;
 }

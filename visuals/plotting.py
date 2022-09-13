@@ -46,7 +46,7 @@ class Planet:
         x = np.array([0.0] * N)
         y = np.array([0.0] * N)
         z = np.array([0.0] * N)
-        print(self.at - JD2000)
+
         for i, day in enumerate(when):
             r, v = plnt.eph(pk.epoch(self.at - JD2000 + day))
             x[i] = r[0] / AU

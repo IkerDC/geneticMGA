@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <cmath>
+#include <string>
 
 #include "astro.h"
 #include "my_exceptions.h"
@@ -10,6 +11,7 @@
 
 class Planet{
 public:
+    std::string name;
     orbitalParameters prm;
     double mu;
     float at;
