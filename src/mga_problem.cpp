@@ -13,7 +13,6 @@ void MGAProblem::add_planet(const int planet, float at){
      * @brief Adds a new planet given the name and a time in JD
      */
     Planet p = Planet(planet, at);
-    p.compute_eph();
     this->planets.push_back(p);
 
 }
@@ -23,10 +22,17 @@ void MGAProblem::add_planet(const int planet, std::string at){
      * @brief Adds a new planet given the name and a time in str format as YYYY-MM-DD
      */
     float at_jd = date2jd(at);
-    
     Planet p = Planet(planet, at_jd);
-    p.compute_eph();
     this->planets.push_back(p);
+}
+
+void MGAProblem::compute_ephemeris(){
+    /**
+     * @brief Computes the ephermeris of the planets in the class.
+     */
+    for(unsigned int i = 0; i < this->planets.size(); i++){
+        this->planets.at(i).compute_eph();
+    }
 }
 
 void MGAProblem::compute_transfers(){
@@ -36,13 +42,10 @@ void MGAProblem::compute_transfers(){
      */
 
     for(unsigned int i = 0; i < this->planets.size() - 1; i++){
-        //std::cout << "Planet 1:" << &this->planets.at(i) << " Planet 2:" << &this->planets.at(i+1) << std::endl; 
         Transfer t = Transfer();
         t.add_planets(&this->planets.at(i), &this->planets.at(i+1));
-        //std::cout << "After  1:" << t.p1 << " AFter  2: "<< t.p2 << std::endl;
         t.compute_transfer();
         this->transfers.push_back(t);
-        //std::cout << "After  1:" << this->transfers.at(i).p1 << " AFter  2: "<< this->transfers.at(i).p2 << std::endl;
     }
 
 }

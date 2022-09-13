@@ -27,5 +27,5 @@ void Flyby::compute_flyby(){
     /**
      * @brief Computes the flyby. 
      */
-    orbit::patched_conic(this->trans1->v_dep, this->trans2->v_arr, this->planet->v_eph, this->planet->mu, this->dV, this->delta, this->peri);
+    orbit::patched_conic(this->trans1->v_arr, this->trans2->v_dep, this->planet->v_eph, this->planet->mu, this->dV, this->delta, this->peri);
 }
