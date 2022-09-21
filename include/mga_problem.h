@@ -24,7 +24,6 @@ public:
     ~MGAProblem();
 
     void add_planet(const int planet, float at);
-    void add_planet(const int planet, std::string at);
     void compute_ephemeris();
     void compute_transfers();
     void compute_flybys();

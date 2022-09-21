@@ -2,8 +2,9 @@
 #include "mga_problem.h"
 
 MGAProblem::MGAProblem(){
-
+    
 }
+
 MGAProblem::~MGAProblem(){
 
 }
@@ -15,15 +16,6 @@ void MGAProblem::add_planet(const int planet, float at){
     Planet p = Planet(planet, at);
     this->planets.push_back(p);
 
-}
-
-void MGAProblem::add_planet(const int planet, std::string at){
-    /**
-     * @brief Adds a new planet given the name and a time in str format as YYYY-MM-DD
-     */
-    float at_jd = date2jd(at);
-    Planet p = Planet(planet, at_jd);
-    this->planets.push_back(p);
 }
 
 void MGAProblem::compute_ephemeris(){
@@ -118,14 +110,8 @@ void MGAProblem::print() const{
     /**
      * @brief Pretty print of the whole problem.
      */
-    std::cout << "0 ==--> DEPARTURE from "<< this->planets.at(0).name <<" ------->" << std::endl;
-    
     for(const auto& fb: this->flybys){
-        std::cout << "~~> 0 ~~> FLYBY at Planet: " << fb.planet->name << " ---->" << std::endl;
+        std::cout << "=== FLYBY at: " << fb.planet->name << " ===" << std::endl;
         fb.print();
     }
-
-    std::cout << "==--> 0 ARRIVAL at "<< this->planets.back().name <<" ---------->" << std::endl;
-
-    
 }

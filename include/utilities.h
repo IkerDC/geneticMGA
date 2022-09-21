@@ -32,9 +32,6 @@ double deg2rad(const double x);
 
 double rad2deg(const double x);
 
-float date2jd(const std::string date);
-
-std::string jd2date(const float date);
 
 
 #endif //UTILITIES_H

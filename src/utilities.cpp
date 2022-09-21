@@ -133,15 +133,3 @@ double rad2deg(const double x){
     return x*180.0/PI;
 }
 
-float date2jd(const std::string date){
-    /**
-     * @brief Converts a given date formated as YYYY-MM-DD to JD using NASA's JPL Horizions API
-     */
-    
-}
-
-std::string jd2date(const float date){
-    /**
-     * @brief Converts a given date formated as JD to YYYY-MM-DD using NASA's JPL Horizions API
-     */
-}

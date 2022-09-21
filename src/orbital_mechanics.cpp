@@ -91,7 +91,7 @@ void orbit::lambert(const double *r1_in, const double *r2_in, double t, const do
 	double lw_out[3];
 	cross_prod(r1_in, r2_in, lw_out);
 	bool lw = lw_out[2] < 0; // z pomponent of result -> left/rigth if angle > 180º
-
+	std::cout << std::to_string(lw) << std::endl;
 	// Increasing the tolerance does not bring any advantage as the
 	// precision is usually greater anyway (due to the rectification of the tof
 	// graph) except near particular cases such as parabolas in which cases a
