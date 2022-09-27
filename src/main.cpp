@@ -3,40 +3,41 @@
 
 
 int main(int argc, char *argv[]){
-    // Gallileo real
-    float t1 = 2447817.5; //2447848.5;  //-> The ge fake dates
-    float t2 = 2447932.5; //2447945.5; 
-    float t3 = 2448233.5; //2448218.5;
-    float t4 = 2448964.5; //2448944.5;
-    float t5 = 2450058.5; //2450034.5;
+    // // Gallileo real
+    // float t1 = 2447817.5; //2447848.5;  //-> The ge fake dates
+    // float t2 = 2447932.5; //2447945.5; 
+    // float t3 = 2448233.5; //2448218.5;
+    // float t4 = 2448964.5; //2448944.5;
+    // float t5 = 2450058.5; //2450034.5;
     
-    // Fake dates
-    // float t1 = 2447848.5;
-    // float t2 = 2447945.5;
-    // float t3 = 2448218.5;
-    // float t4 = 2448944.5;
-    // float t5 = 2450034.5;
+    // // Fake dates
+    // // float t1 = 2447848.5;
+    // // float t2 = 2447945.5;
+    // // float t3 = 2448218.5;
+    // // float t4 = 2448944.5;
+    // // float t5 = 2450034.5;
 
-    MGAProblem mga = MGAProblem();
-
-    mga.add_planet(EARTH, t1);
-    mga.add_planet(VENUS, t2);
-    mga.add_planet(EARTH, t3);
-    mga.add_planet(EARTH, t4);
-    mga.add_planet(JUPITER, t5);
-
-    //Voyager 
-    // float t1 = 2443389.5;
-    // float t2 = 2443936.5;
-    // float t3 = 2444554.5;
-
-    //MGAProblem mga = MGAProblem();
+    // MGAProblem mga = MGAProblem();
 
     // mga.add_planet(EARTH, t1);
     // mga.add_planet(VENUS, t2);
     // mga.add_planet(EARTH, t3);
     // mga.add_planet(EARTH, t4);
     // mga.add_planet(JUPITER, t5);
+
+    //Voyager 
+    float t1 = 2443389.5;
+    float t2 = 2443936.5;
+    float t3 = 2444554.5;
+
+    MGAProblem mga = MGAProblem();
+
+    
+
+    mga.add_planet(EARTH, t1);
+    mga.add_planet(JUPITER, t2);
+    mga.add_planet(SATURN, t3);
+
 
     mga.compute_ephemeris();
     mga.compute_transfers();
