@@ -11,7 +11,7 @@ TARGET := mga
 CXX := g++
 CXXFLAGS := -Wall -std=c++17 -g
 
-SOURCES := $(wildcard src/*.cpp)
+SOURCES := $(wildcard src/*.cpp) $(wildcard genetic/*.cpp)
 OBJECTS := $(patsubst src%,obj%, $(patsubst %.c,%.o, $(patsubst %.cpp,%.o,$(SOURCES))))
 
 INCLUDE := -Iinclude
@@ -22,6 +22,9 @@ all: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(INCLUDE) $(OBJECTS) -o $(TARGET) $(LIBS)
 
 %.o: ../src/%.cpp
+	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $< -o $@
+
+%.o: ../genetic/%.cpp
 	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $< -o $@
 
 .PHONY: clean help

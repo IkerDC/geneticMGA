@@ -33,5 +33,4 @@ double deg2rad(const double x);
 double rad2deg(const double x);
 
 
-
 #endif //UTILITIES_H
