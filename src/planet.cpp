@@ -1,5 +1,9 @@
 #include "planet.h"
 
+Planet::Planet(){
+
+}
+
 Planet::Planet(int planet, float at){
     this->at = at;
     switch (planet)
@@ -51,6 +55,7 @@ Planet::Planet(int planet, float at){
 }
 
 Planet::~Planet(){
+
 }
 
 void Planet::setParameters(const float param[6], const float param_cy[6], double mu){

@@ -18,6 +18,7 @@ public:
     double r_eph[3];
     double v_eph[3];
 
+    Planet();
     Planet(int planet, float at);
     ~Planet();
     

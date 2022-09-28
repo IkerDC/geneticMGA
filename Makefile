@@ -11,11 +11,11 @@ TARGET := mga
 CXX := g++
 CXXFLAGS := -Wall -std=c++17 -g
 
-SOURCES := $(wildcard src/*.cpp) $(wildcard genetic/*.cpp)
+SOURCES := $(wildcard src/*.cpp)
 OBJECTS := $(patsubst src%,obj%, $(patsubst %.c,%.o, $(patsubst %.cpp,%.o,$(SOURCES))))
 
 INCLUDE := -Iinclude
-LIBS := -lcurl
+LIBS :=
 
 
 all: $(OBJECTS)
