@@ -4,8 +4,8 @@ Planet::Planet(){
 
 }
 
-Planet::Planet(int planet, float at){
-    this->at = at;
+Planet::Planet(int planet){
+    
     switch (planet)
     {
     case MERCURY:

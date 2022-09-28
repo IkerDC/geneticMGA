@@ -19,7 +19,7 @@ public:
     double v_eph[3];
 
     Planet();
-    Planet(int planet, float at);
+    Planet(int planet);
     ~Planet();
     
     void setParameters(const float param[6], const float param_cy[6], double mu);

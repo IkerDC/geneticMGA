@@ -4,10 +4,12 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <random>
 
 #include "planet.h"
+#include "my_exceptions.h"
 
-class ProblemDefinition{
+class ProblemDefinition {
 public:
     Planet departurePlanet;
     std::pair<int, int> departureWindow;
@@ -18,12 +20,12 @@ public:
     ProblemDefinition();
     ~ProblemDefinition();
 
-    void add_departure(int _p, float min, float max);
+    void add_departure(int _p, int min, int max);
     void add_flyby(int _p, int min, int max); 
 };
 
 
-class Individual{
+class Individual {
 public:
     const ProblemDefinition* problem;
     std::vector<int> flyTimes;

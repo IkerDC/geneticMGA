@@ -27,4 +27,10 @@ struct distinctFlybyPlanet : public std::exception {
     }
 };
 
+struct timeRange : public std::exception {
+    const char* what() const throw () {
+        return "Time ranges are not coherent (min >= max)";
+    }
+};
+
 #endif //MY_EXCEPTIONS_H
