@@ -9,6 +9,18 @@
 #include "planet.h"
 #include "my_exceptions.h"
 
+
+#define N_POPULATION 5000
+
+
+struct GenOperators{
+    float crossOver;
+    float reproduction;
+    float mutation;  
+    int elitism;
+};
+
+
 class ProblemDefinition {
 public:
     Planet departurePlanet;
@@ -27,10 +39,10 @@ public:
 
 class Individual {
 public:
-    const ProblemDefinition* problem;
-    std::vector<int> flyTimes;
-    float fitness;
-    float cost;
+    std::vector<int> flyTimes;          // Chromosome (each variable is a gene).
+    const ProblemDefinition* problem;   // Problem reference (planets reference to operate are in there).
+    float fitness;                      // Fitness of the individual.
+    float cost;                         // Total cost of the individual based on the cost function.
 
     Individual(ProblemDefinition& prob);
     ~Individual();
@@ -40,6 +52,26 @@ public:
     float getFlyTime() const;
 
     void evaluate();
+};
+
+class Population{
+public:
+    std::vector<Individual> population[N_POPULATION];
+    const GenOperators geParameters;
+    int generationCount;
+
+    Population(const GenOperators params);
+    ~Population();
+
+    void inception();   // let the civilization begin.
+
+    // Genetic operators.
+    void crossOver();
+    void mutate();
+    void elitism();
+
+    void evolverNewGeneration();
+    void runGeneration();
 };
 
 #endif //INDIVIDUAL_H
