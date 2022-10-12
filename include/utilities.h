@@ -32,5 +32,9 @@ double deg2rad(const double x);
 
 double rad2deg(const double x);
 
+float rand_d();
+
+int rand_rng(int min, int max);
+
 
 #endif //UTILITIES_H

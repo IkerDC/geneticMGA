@@ -13,7 +13,7 @@ void MGAProblem::add_planet(const int planet, float at){
     /**
      * @brief Adds a new planet given the name and a time in JD
      */
-    Planet p = Planet(planet, at);
+    Planet p = Planet(planet);
     this->planets.push_back(p);
 
 }

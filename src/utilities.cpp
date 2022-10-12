@@ -133,3 +133,11 @@ double rad2deg(const double x){
     return x*180.0/PI;
 }
 
+
+float rand_d(){
+    return (float)std::rand()/RAND_MAX;
+}
+
+int rand_rng(int min, int max){
+    return min + (std::rand() % static_cast<int>(max - min + 1));
+}

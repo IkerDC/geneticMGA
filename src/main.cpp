@@ -21,10 +21,11 @@ int main(int argc, char *argv[]){
 
     // mga.plot();
     // mga.print();
-    ProblemDefinition prob = ProblemDefinition();
-    prob.add_departure(EARTH, 2443389.0, 2443389.0);
-    prob.add_flyby(VENUS, 500, 500);
+    // ProblemDefinition prob = ProblemDefinition();
+    // prob.add_departure(EARTH, 2443389.0, 2443389.0);
+    // prob.add_flyby(VENUS, 500, 500);
 
-    Individual ind = Individual(prob); // Reference to prob
+    // Individual ind = Individual(prob); // Reference to prob
+    std::srand(std::time(nullptr)); // Init the random time.
 
 }
