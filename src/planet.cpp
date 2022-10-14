@@ -76,9 +76,9 @@ void Planet::setParameters(const float param[6], const float param_cy[6], double
     this->prm.long_nodecy = param_cy[5];
 }
 
-void Planet::compute_eph(){
+void Planet::compute_eph(float at){
     /**
      * @brief Utilizes the ephemris function to set compute the ephemeris a the predifined date set in the class.
      */
-    orbit::ephemeris(this->prm, this->at, this->r_eph, this->v_eph);
+    orbit::ephemeris(this->prm, at, this->r_eph, this->v_eph);
 }

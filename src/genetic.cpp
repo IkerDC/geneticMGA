@@ -6,22 +6,20 @@ ProblemDefinition::ProblemDefinition(){
 ProblemDefinition::~ProblemDefinition(){
 }
 
-void ProblemDefinition::add_departure(int _p, int min, int max){
-    
-    this->departurePlanet = Planet(_p);
-    if(min >= max){
-        throw timeRange();
-    }
-    this->departureWindow = std::make_pair(min, max);
-}
 
-void ProblemDefinition::add_flyby(int _p, int min, int max){
+void ProblemDefinition::add_planet(int _p, int min, int max, bool dep){
     
-    this->flybyPlanets.push_back(Planet(_p));
+    this->planets.push_back(Planet(_p));
     if(min >= max){
         throw timeRange();
     }
-    this->flybyWindows.push_back(std::make_pair(min, max));
+    if(dep){
+        this->departureWindow = {min, max};
+    }
+    else{
+        this->flybyWindows.push_back(std::make_pair(min, max));
+    }
+
 }
 
 
@@ -31,8 +29,8 @@ void ProblemDefinition::add_flyby(int _p, int min, int max){
 ====================================================================================================================
 */
 
-Individual::Individual(ProblemDefinition& prob){
-
+Individual::Individual(ProblemDefinition* prob){
+    this->problem = prob;
 }
 
 Individual::~Individual(){
@@ -77,8 +75,63 @@ float Individual::getFlyTime() const{
 }
 
 void Individual::evaluate(){
+    /**
+     * @brief Solves the mga problem. Updates the cost.
+     * 
+     */
+
+    // Per planets
+    for(unsigned int i = 0; i < this->problem->planets.size() - 2; i++){
+        double r1[3], v1[3], r2[3], v2[3], r3[3], v3[3];
+        double T1 = std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + i + 1, 0.0); // Times are in format [Departure T, +ΔT1, +ΔT2,..]
+        double T2 = std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 1) + 1, 0.0);
+        double T3 = std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 2) + 1, 0.0); 
+
+        orbit::ephemeris(this->problem->planets.at(i).prm, T1, r1, v1); // segfault here
+        orbit::ephemeris(this->problem->planets.at(i + 1).prm, T2, r2, v2);
+        orbit::ephemeris(this->problem->planets.at(i + 2).prm, T3, r3, v3);
+
+        double v_dep1[3], v_arr2[3], v_dep2[3], v_arr3[3];
+
+        orbit::lambert(r1, r2, (T2 - T1) * DAY2SEC, MU_SUN, v_dep1, v_arr2);
+        orbit::lambert(r2, r3, (T3 - T2) * DAY2SEC, MU_SUN, v_dep2, v_arr3);
+
+        double dV, delta, peri;
+        orbit::patched_conic(v_arr2, v_dep2, v2, this->problem->planets.at(i + 1).mu, dV, delta, peri);
+
+
+        // Cost update
+        this->updateCost(this->problem->planets.at(i + 1), dV, delta, peri);
+        if(i == 0){
+            this->updateDepartureCost(norm(v_dep1));
+        }
+
+        std::cout << "-------------" << std::endl;
+        std::cout << "  Turning angle: " << rad2deg(delta) << "º" << std::endl;
+        std::cout << "  Periapsis rad: " << peri << "m" << std::endl;
+        std::cout << "  Total dV     : " << dV << "m/s" << std::endl;
+    }
+}
+
+
+void Individual::updateCost(const Planet& planet, double dV, double delta, double peri){
+    /**
+     * @brief Updates the current cost.
+     * - Accumulates the delta V of the flyby.
+     * - If the flyby is not feasable (too small peri for instance) it increases the cost a lot (to avoid solution evolving).
+     */
+    // TODO: change to also consider the perigee and maybe the angle too???
+    this->cost += dV;
 
 }
+
+void Individual::updateDepartureCost(double dV){
+    /**
+     * @brief Adds departure cost.
+     */
+    this->cost += dV;
+}
+
 
 /*
 ====================================================================================================================
@@ -86,7 +139,7 @@ void Individual::evaluate(){
 ====================================================================================================================
 */
  
-Population::Population(const GenOperators params, ProblemDefinition& problem) : geParameters(params), 
+Population::Population(const GenOperators params, ProblemDefinition* problem) : geParameters(params), 
                                                                                 population(N_POPULATION, Individual(problem)), 
                                                                                 newPopulation(N_POPULATION, Individual(problem)){
 
@@ -144,7 +197,6 @@ void Population::selection(){
             this->newPopulation.push_back(this->population.at(idx + this->geParameters.elitism));
         }
         
-
     }
     else{
         // Tournament method

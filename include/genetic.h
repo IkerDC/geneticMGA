@@ -10,7 +10,8 @@
 #include "planet.h"
 #include "my_exceptions.h"
 #include "utilities.h"
-
+#include "orbital_mechanics.h"
+#include "numeric"
 
 #define N_POPULATION 5000
 
@@ -26,21 +27,22 @@ struct GenOperators{
 
 class ProblemDefinition {
 public:
-    Planet departurePlanet;
     std::pair<int, int> departureWindow;
-    
-    std::vector<Planet> flybyPlanets;
+    std::vector<Planet> planets;
     std::vector<std::pair<int, int>> flybyWindows;
 
     ProblemDefinition();
     ~ProblemDefinition();
 
-    void add_departure(int _p, int min, int max);
-    void add_flyby(int _p, int min, int max); 
+    void add_planet(int _p, int min, int max, bool dep = false); 
 };
 
 
 class Individual {
+private:
+    void updateDepartureCost(double dV);
+    void updateCost(const Planet& planet, double dV, double delta, double peri);
+
 public:
     std::vector<int> flyTimes;          // Chromosome (each variable is a gene).
     ProblemDefinition* problem;         // Problem reference (planets reference to operate are in there).
@@ -48,7 +50,7 @@ public:
     float cost;                         // Total cost of the individual based on the cost function.
 
     Individual();
-    Individual(ProblemDefinition& prob);
+    Individual(ProblemDefinition* prob);
     ~Individual();
     
     Individual mate(const Individual& partner); // Mate with another individual to create a new child.
@@ -77,7 +79,7 @@ public:
     const GenOperators geParameters;
     int generationCount;
 
-    Population(const GenOperators params, ProblemDefinition& problem);
+    Population(const GenOperators params, ProblemDefinition* problem);
     ~Population();
 
     void inception();   // let the civilization begin.

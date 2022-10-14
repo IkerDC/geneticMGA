@@ -15,7 +15,7 @@ void MGAProblem::add_planet(const int planet, float at){
      */
     Planet p = Planet(planet);
     this->planets.push_back(p);
-
+    this->times.push_back(at);
 }
 
 void MGAProblem::compute_ephemeris(){
@@ -23,7 +23,7 @@ void MGAProblem::compute_ephemeris(){
      * @brief Computes the ephermeris of the planets in the class.
      */
     for(unsigned int i = 0; i < this->planets.size(); i++){
-        this->planets.at(i).compute_eph();
+        this->planets.at(i).compute_eph(this->times.at(i));
     }
 }
 
@@ -36,7 +36,8 @@ void MGAProblem::compute_transfers(){
     for(unsigned int i = 0; i < this->planets.size() - 1; i++){
         Transfer t = Transfer();
         t.add_planets(&this->planets.at(i), &this->planets.at(i+1));
-        t.compute_transfer();
+        float T = (this->times.at(i+1) - this->times.at(i)) * DAY2SEC;
+        t.compute_transfer(T);
         this->transfers.push_back(t);
     }
 
@@ -76,11 +77,11 @@ void MGAProblem::plot() const{
     };
 
     // Fill the planets and the coordinates
-    for(const auto& planet: this->planets){
+    for(unsigned int i = 0; i < this->planets.size(); i++){
         visual_js["Planets"].push_back({
-            {"Name", planet.name},
-            {"At", planet.at},
-            {"Coordinates", planet.r_eph},
+            {"Name", planets.at(i).name},
+            {"At", times.at(i)},
+            {"Coordinates", planets.at(i).r_eph},
             {"Color", "gray"}
         });
     }

@@ -19,6 +19,7 @@ public:
     std::vector<Planet> planets;
     std::vector<Transfer> transfers;
     std::vector<Flyby> flybys;
+    std::vector<float> times;
     
     MGAProblem();
     ~MGAProblem();

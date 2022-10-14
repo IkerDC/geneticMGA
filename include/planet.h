@@ -23,7 +23,7 @@ public:
     ~Planet();
     
     void setParameters(const float param[6], const float param_cy[6], double mu);
-    void compute_eph();
+    void compute_eph(float at);
 };
 
 #endif //PLANET
