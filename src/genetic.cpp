@@ -6,20 +6,23 @@ ProblemDefinition::ProblemDefinition(){
 ProblemDefinition::~ProblemDefinition(){
 }
 
-
-void ProblemDefinition::add_planet(int _p, float min, float max, bool dep){
+void ProblemDefinition::add_departure(int _p, float min, float max){
     
     this->planets.push_back(Planet(_p));
     if(min >= max){
         throw timeRange();
     }
-    if(dep){
-        this->departureWindow = {min, max};
-    }
-    else{
-        this->flybyWindows.push_back(std::make_pair(min, max));
+    this->departureWindow = {min, max};
+}
+
+void ProblemDefinition::add_planet(int _p, float min, float max){
+    
+    this->planets.push_back(Planet(_p));
+    if(min >= max){
+        throw timeRange();
     }
 
+    this->flybyWindows.push_back(std::make_pair(min, max));
 }
 
 
@@ -31,6 +34,8 @@ void ProblemDefinition::add_planet(int _p, float min, float max, bool dep){
 
 Individual::Individual(ProblemDefinition* prob){
     this->problem = prob;
+    this->cost = 0.f;
+    this->fitness = 0.f;
 }
 
 Individual::~Individual(){
@@ -60,8 +65,8 @@ void Individual::init(){
     float dep_time = this->problem->departureWindow.first + rand() % (int)max_dep;
     this->flyTimes.push_back(dep_time); // first value in vector is departure date in JL format
     
-    for(unsigned int i = 0; i < this->flyTimes.size(); i++){
-        float fb_time = this->problem->flybyWindows.at(i).first + rand() % (int)(this->problem->flybyWindows.at(i).second - this->problem->flybyWindows.at(i).first);
+    for(const auto& fb_wind: this->problem->flybyWindows ){
+        float fb_time = fb_wind.first + rand() % (int)(fb_wind.second - fb_wind.first);
         this->flyTimes.push_back(fb_time);
     }
 }
@@ -100,15 +105,16 @@ void Individual::evaluate(){
         orbit::patched_conic(v_arr2, v_dep2, v2, this->problem->planets.at(i + 1).mu, dV, delta, peri);
 
         // Cost update if departure too.
+        std::cout << "------------------------------------------" << std::endl;
         if(i == 0){
             this->updateDepartureCost(norm(v_dep1));
+            std::cout << "  Departure cost: " << norm(v_dep1) << "m/s" << std::endl;
         }
 
         // Cost update
         this->updateCost(this->problem->planets.at(i + 1), dV, delta, peri);
 
 
-        std::cout << "------------------------------------------" << std::endl;
         std::cout << "  Turning angle: " << rad2deg(delta) << "º" << std::endl;
         std::cout << "  Periapsis rad: " << peri << "m" << std::endl;
         std::cout << "  Total dV     : " << dV << "m/s" << std::endl;
@@ -177,19 +183,18 @@ void Population::selection(){
     /**
      * @brief Selects the individuals that will undergo reporduction/crossover.
      */
-
     if(this->geParameters.roulette){
         // Roulette Operattor - TODO SET AS AND ENUM AND TRY FURTHER METHODS
         
         float sum_adjusted_ft = 0.f;
-        float roulette[N_POPULATION - this->geParameters.elitism];
+        float roulette[N_POPULATION];
         
-        for(unsigned int i = 0; i < N_POPULATION - this->geParameters.elitism; i++){
-            sum_adjusted_ft += 1/(1 + this->population.at(i + this->geParameters.elitism).fitness);
+        for(unsigned int i = 0; i < N_POPULATION; i++){
+            sum_adjusted_ft += 1/(1 + this->population.at(i).fitness);
         }
         // Roulette wheel
-        for(unsigned int j = 0; j < N_POPULATION - this->geParameters.elitism; j++){
-            roulette[j] = (1/(1 + this->population.at(j + this->geParameters.elitism).fitness)) / (sum_adjusted_ft);
+        for(unsigned int j = 0; j < N_POPULATION; j++){
+            roulette[j] = (1/(1 + this->population.at(j).fitness)) / (sum_adjusted_ft);
         }
 
         // Do the selection
@@ -201,7 +206,7 @@ void Population::selection(){
                 idx++;
                 curr += roulette[idx]; 
             }
-            this->newPopulation.push_back(this->population.at(idx + this->geParameters.elitism));
+            this->newPopulation.push_back(this->population.at(idx));
         }
         
     }
@@ -273,10 +278,32 @@ void Population::evolveNewGeneration(){
     for(auto& ind: this->population){
         ind.evaluate();
         ind.fitness = ind.cost; // delerte me, do somewhere else (TODO);
+
     }
 }
 
 void Population::runGeneration(){
+    /**
+     * @brief Runs the full genetic algorithm
+     */
+
+    int g = 0;
+    this->newPopulation.clear();
+
+    while (g < GEN_LIMIT){
+        this->evolveNewGeneration();
+        this->sortPopulation();
+        
+        this->elitism();
+        this->selection();
+        this->crossOver();
+        this->mutate();
+
+        this->population = this->newPopulation;
+        this->newPopulation.clear();
+
+        g++;
+    }
 
 }
 

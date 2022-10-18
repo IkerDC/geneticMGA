@@ -14,6 +14,7 @@
 #include "numeric"
 
 #define N_POPULATION 5
+#define GEN_LIMIT 5
 
 struct GenOperators{
     float crossOver;
@@ -34,7 +35,8 @@ public:
     ProblemDefinition();
     ~ProblemDefinition();
 
-    void add_planet(int _p, float min, float max, bool dep = false); 
+    void add_departure(int _p, float min, float max);
+    void add_planet(int _p, float min, float max); 
 };
 
 
