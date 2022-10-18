@@ -15,9 +15,7 @@ int main(int argc, char *argv[]){
     mga.add_planet(JUPITER, t2);
     mga.add_planet(SATURN, t3);
 
-    mga.compute_ephemeris();
-    mga.compute_transfers();
-    mga.compute_flybys();
+    mga.compute();
 
     //mga.plot();
     mga.print();

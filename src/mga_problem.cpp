@@ -5,6 +5,16 @@ MGAProblem::MGAProblem(){
     
 }
 
+MGAProblem::MGAProblem(const Individual& ind){
+    /**
+     * @brief Constructor out of an individual, to better anaylze it.
+     */
+    for(unsigned int i = 0; i < ind.problem->planets.size(); i++){
+        this->planets.push_back(ind.problem->planets.at(i));
+        this->times.push_back(ind.flyTimes.at(i));
+    }
+}
+
 MGAProblem::~MGAProblem(){
 
 }
@@ -54,6 +64,12 @@ void MGAProblem::compute_flybys(){
         this->flybys.push_back(f);
     }
 
+}
+
+void MGAProblem::compute(){
+    this->compute_ephemeris();
+    this->compute_transfers();
+    this->compute_flybys();
 }
 
 double MGAProblem::computeCost() const{

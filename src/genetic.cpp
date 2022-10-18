@@ -7,7 +7,7 @@ ProblemDefinition::~ProblemDefinition(){
 }
 
 
-void ProblemDefinition::add_planet(int _p, int min, int max, bool dep){
+void ProblemDefinition::add_planet(int _p, float min, float max, bool dep){
     
     this->planets.push_back(Planet(_p));
     if(min >= max){
@@ -56,12 +56,12 @@ void Individual::init(){
     /**
      * @brief Used to initizilize the individual to a random vector of times (within the windows).
      */
-    int max_dep = this->problem->departureWindow.second - this->problem->departureWindow.first;
-    int dep_time = this->problem->departureWindow.first + rand() % max_dep;
-    this->flyTimes.push_back(dep_time);
+    float max_dep = this->problem->departureWindow.second - this->problem->departureWindow.first;
+    float dep_time = this->problem->departureWindow.first + rand() % (int)max_dep;
+    this->flyTimes.push_back(dep_time); // first value in vector is departure date in JL format
     
     for(unsigned int i = 0; i < this->flyTimes.size(); i++){
-        int fb_time = this->problem->flybyWindows.at(i).first + rand() % (this->problem->flybyWindows.at(i).second - this->problem->flybyWindows.at(i).first);
+        float fb_time = this->problem->flybyWindows.at(i).first + rand() % (int)(this->problem->flybyWindows.at(i).second - this->problem->flybyWindows.at(i).first);
         this->flyTimes.push_back(fb_time);
     }
 }
@@ -99,14 +99,16 @@ void Individual::evaluate(){
         double dV, delta, peri;
         orbit::patched_conic(v_arr2, v_dep2, v2, this->problem->planets.at(i + 1).mu, dV, delta, peri);
 
-
-        // Cost update
-        this->updateCost(this->problem->planets.at(i + 1), dV, delta, peri);
+        // Cost update if departure too.
         if(i == 0){
             this->updateDepartureCost(norm(v_dep1));
         }
 
-        std::cout << "-------------" << std::endl;
+        // Cost update
+        this->updateCost(this->problem->planets.at(i + 1), dV, delta, peri);
+
+
+        std::cout << "------------------------------------------" << std::endl;
         std::cout << "  Turning angle: " << rad2deg(delta) << "º" << std::endl;
         std::cout << "  Periapsis rad: " << peri << "m" << std::endl;
         std::cout << "  Total dV     : " << dV << "m/s" << std::endl;
@@ -122,6 +124,10 @@ void Individual::updateCost(const Planet& planet, double dV, double delta, doubl
      */
     // TODO: change to also consider the perigee and maybe the angle too???
     this->cost += dV;
+
+    // Penalty function.
+    // this->cost += ; // Penalize low perigee radius.
+    // this->cost += ; // Penalize low velocities flybys (can lead to spacecraft planet capture).
 
 }
 
@@ -164,6 +170,7 @@ void Population::sortPopulation(){
      */
     std::sort(this->population.begin(), this->population.end());
 }
+
 
 // ----- Genetic operators. -----
 void Population::selection(){
@@ -265,6 +272,7 @@ void Population::evolveNewGeneration(){
      */
     for(auto& ind: this->population){
         ind.evaluate();
+        ind.fitness = ind.cost; // delerte me, do somewhere else (TODO);
     }
 }
 

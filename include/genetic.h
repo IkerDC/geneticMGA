@@ -13,7 +13,7 @@
 #include "orbital_mechanics.h"
 #include "numeric"
 
-#define N_POPULATION 5000
+#define N_POPULATION 5
 
 struct GenOperators{
     float crossOver;
@@ -27,14 +27,14 @@ struct GenOperators{
 
 class ProblemDefinition {
 public:
-    std::pair<int, int> departureWindow;
+    std::pair<float, float> departureWindow;
     std::vector<Planet> planets;
-    std::vector<std::pair<int, int>> flybyWindows;
+    std::vector<std::pair<float, float>> flybyWindows;
 
     ProblemDefinition();
     ~ProblemDefinition();
 
-    void add_planet(int _p, int min, int max, bool dep = false); 
+    void add_planet(int _p, float min, float max, bool dep = false); 
 };
 
 
@@ -44,7 +44,7 @@ private:
     void updateCost(const Planet& planet, double dV, double delta, double peri);
 
 public:
-    std::vector<int> flyTimes;          // Chromosome (each variable is a gene).
+    std::vector<float> flyTimes;          // Chromosome (each variable is a gene).
     ProblemDefinition* problem;         // Problem reference (planets reference to operate are in there).
     float fitness;                      // Fitness of the individual.
     float cost;                         // Total cost of the individual based on the cost function.
