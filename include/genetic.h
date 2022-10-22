@@ -5,7 +5,8 @@
 #include <iostream>
 #include <string>
 #include <random>
-#include <bits/stdc++.h>
+#include <bitset>
+#include <bits/stdc++.h> // for std::sort
 
 #include "planet.h"
 #include "my_exceptions.h"
@@ -16,27 +17,35 @@
 #define N_POPULATION 5
 #define GEN_LIMIT 5
 
+#define SELECTION_ROULETTE      0
+#define SELECTION_TOURNAMENT    1
+
+#define TOURNAMENT_N    2
+
+#define CROSS_UNIFORM       0
+#define CROSS_SINGLE_GENE   1
+#define CROSS_SINGLE_POINT  2
+#define CROSS_DOUBLE_POINT  3
+
 struct GenOperators{
-    float crossOver;
-    float reproduction;
-    float mutation;  
-    int elitism;
-    int n_tournament = 2;
-    bool roulette;
+    int elitism_n;
+    int selectionType;
+    int crossOverType;
+    float crossOverProb;
+    float mutationProb;  
 };
 
 
 class ProblemDefinition {
 public:
-    std::pair<float, float> departureWindow;
+    int departure;
     std::vector<Planet> planets;
-    std::vector<std::pair<float, float>> flybyWindows;
+    std::vector<std::pair<int, int>> timeWindows; //{Td(min, max), T1(min,max), T2(min, max), ... }
 
-    ProblemDefinition();
+    ProblemDefinition(const int _dep);
     ~ProblemDefinition();
 
-    void add_departure(int _p, float min, float max);
-    void add_planet(int _p, float min, float max); 
+    void add_planet(int _p, int min, int max);
 };
 
 
@@ -46,7 +55,7 @@ private:
     void updateCost(const Planet& planet, double dV, double delta, double peri);
 
 public:
-    std::vector<float> flyTimes;          // Chromosome (each variable is a gene).
+    std::vector<int> flyTimes;          // Chromosome (each variable is a gene).
     ProblemDefinition* problem;         // Problem reference (planets reference to operate are in there).
     float fitness;                      // Fitness of the individual.
     float cost;                         // Total cost of the individual based on the cost function.
@@ -55,12 +64,11 @@ public:
     Individual(ProblemDefinition* prob);
     ~Individual();
     
-    Individual mate(const Individual& partner); // Mate with another individual to create a new child.
+    Individual mate(const Individual& partner, int crossType); // Mate with another individual to create a new child.
     void createMutation();
 
     void init();
-    int times2bit() const;
-    float getFlyTime() const;
+    int getFlyTime() const;
 
     void evaluate();
 

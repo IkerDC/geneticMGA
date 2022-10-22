@@ -141,3 +141,24 @@ float rand_d(){
 int rand_rng(int min, int max){
     return min + (std::rand() % static_cast<int>(max - min + 1));
 }
+
+std::string int2bitStr(const int x) {
+    return std::bitset<MAX_BIT_SIZE>(x).to_string();
+}
+
+int bitStr2int(const std::string x) {
+    return std::stoi(x, nullptr, 2);
+}
+
+std::string uniformBitstrCross(const std::string s1, const std::string s2){
+    if(s1.size() != s2.size()){
+        throw "Invalide sizes of bit strings to uniform cross. Sizes are not equal!";
+    }
+
+    std::string res;
+    for(unsigned int i = 0; i < s1.size(); i++){
+        char bit = (rand_d() <= 0.5) ? s1.at(i) : s2.at(i);
+        res.push_back(bit);
+    }
+    return res;
+}

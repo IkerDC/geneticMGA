@@ -9,9 +9,11 @@ MGAProblem::MGAProblem(const Individual& ind){
     /**
      * @brief Constructor out of an individual, to better anaylze it.
      */
+    float increase = 0;
     for(unsigned int i = 0; i < ind.problem->planets.size(); i++){
         this->planets.push_back(ind.problem->planets.at(i));
-        this->times.push_back(ind.flyTimes.at(i));
+        this->times.push_back((float)(ind.flyTimes.at(i) + increase)); //TODO: Rev this works
+        increase += (float)ind.flyTimes.at(i); // Times are as dep, t_leg1, t_leg2, should be added to know real time.
     }
 }
 

@@ -26,26 +26,31 @@ int main(int argc, char *argv[]){
     
     // Genetic operation parameters setting.
     GenOperators genOp;
-    genOp.roulette = true;
-    genOp.crossOver = 0.9;
-    genOp.reproduction = 0.1;
-    genOp.elitism = 1;
-    genOp.mutation = 0.05;
-    genOp.n_tournament = 2;
+    genOp.elitism_n = 1;
+    genOp.selectionType = SELECTION_ROULETTE;
+    genOp.crossOverProb = CROSS_DOUBLE_POINT;
+    genOp.crossOverProb = 0.9;
+    genOp.mutationProb = 0.05;
 
     // Problem definition and times settings
-    std::pair<float, float> dep = {2443145.5, 2444240.5};
-    std::pair<float, float> t1 = {50.f, 2000.f};
-    std::pair<float, float> t2 = {50.f, 2000.f};
+    int Tdep = 2443145;
+    std::pair<int, int> dep_window = {0, 1095}; // NOTE: First value (min) should be 0 as it is the departure!
+    std::pair<int, int> t1_window = {50, 2000};
+    std::pair<int, int> t2_window = {50, 2000};
 
-    ProblemDefinition prob = ProblemDefinition();
-    prob.add_departure(EARTH, dep.first, dep.second);
-    prob.add_planet(JUPITER, t1.first, t1.second);
-    prob.add_planet(SATURN, t2.first, t2.second);
+    ProblemDefinition prob = ProblemDefinition(Tdep);
+    prob.add_planet(EARTH, dep_window.first, dep_window.second);
+    prob.add_planet(JUPITER, t1_window.first, t1_window.second);
+    prob.add_planet(SATURN, t2_window.first, t2_window.second);
 
     // Population and genetic algorithm
     Population population = Population(genOp, &prob);
     population.inception();
     population.runGeneration();
+
+    // MGAProblem mga = MGAProblem(population.population.at(0)); //FIXME: NOT SURE THIS WORKS RIGHT! SHOULD BE CHECKED!
+    // mga.compute();
+    // mga.print();
+    // mga.plot();
     
 }

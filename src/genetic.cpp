@@ -1,28 +1,19 @@
 #include "genetic.h"
 
-ProblemDefinition::ProblemDefinition(){
+ProblemDefinition::ProblemDefinition(const int _dep) : departure(_dep){
 }
 
 ProblemDefinition::~ProblemDefinition(){
 }
 
-void ProblemDefinition::add_departure(int _p, float min, float max){
-    
-    this->planets.push_back(Planet(_p));
-    if(min >= max){
-        throw timeRange();
-    }
-    this->departureWindow = {min, max};
-}
-
-void ProblemDefinition::add_planet(int _p, float min, float max){
+void ProblemDefinition::add_planet(int _p, int min, int max){
     
     this->planets.push_back(Planet(_p));
     if(min >= max){
         throw timeRange();
     }
 
-    this->flybyWindows.push_back(std::make_pair(min, max));
+    this->timeWindows.push_back(std::make_pair(min, max));
 }
 
 
@@ -43,10 +34,85 @@ Individual::~Individual(){
 }
 
 
-Individual mate(const Individual& partner){
+Individual Individual::mate(const Individual& partner, int crossType){
     /**
-     * @brief Matting funciton that creates a new individual.
+     * @brief Matting function that creates a new individual.
      */
+    if(crossType == CROSS_UNIFORM){
+        // Take the full chromosomes. Pick randmly the bit for the child from one of the parents.
+        for(unsigned int i = 0; i < this->flyTimes.size(); i++){
+            std::string p1_g = int2bitStr(this->flyTimes.at(i));
+            std::string p2_g = int2bitStr(partner.flyTimes.at(i));
+            std::string child_g = uniformBitstrCross(p1_g, p2_g);
+
+            int child_time = bitStr2int(child_g);
+            // Check that the new gene is within the problem's bounds. Else, adjust them. NOTE: not ideal (maybe could be added to the penalty function).
+            child_time = (child_time >= this->problem->timeWindows.at(i).first) ? child_time : this->problem->timeWindows.at(i).first;
+            child_time = (child_time <= this->problem->timeWindows.at(i).second) ? child_time : this->problem->timeWindows.at(i).second;
+            // FIXME: Individual child = this; child.flyTimes.at(i) = child_time;   
+            
+
+        }
+    }
+    else if(crossType == CROSS_SINGLE_GENE){
+        // Select a random Gene. Do CROSS_UNIFORM only on that gene.
+        const int r_gene = rand() % this->flyTimes.size();
+        std::string p1_g = int2bitStr(this->flyTimes.at(r_gene));
+        std::string p2_g = int2bitStr(partner.flyTimes.at(r_gene));
+        std::string child_g = uniformBitstrCross(p1_g, p2_g);
+
+        int child_time = bitStr2int(child_g);
+        // Check that the new gene is within the problem's bounds. Else, adjust them. NOTE: not ideal (maybe could be added to the penalty function).
+        child_time = (child_time >= this->problem->timeWindows.at(r_gene).first) ? child_time : this->problem->timeWindows.at(r_gene).first;
+        child_time = (child_time <= this->problem->timeWindows.at(r_gene).second) ? child_time : this->problem->timeWindows.at(r_gene).second;
+        // FIXME: Individual child = this; child.flyTimes.at(r_gene) = child_time;   
+
+    }
+    else if(crossType == CROSS_SINGLE_POINT){
+        // From the full chromosome. At a given random point, interchange the parent 1 bits by the partner's bits.
+        std::string p1_chromo;
+        std::string p2_chromo;
+        for(unsigned int i = 0; i < this->flyTimes.size(); i++){
+            p1_chromo.append(int2bitStr(this->flyTimes.at(i)));
+            p2_chromo.append(int2bitStr(partner.flyTimes.at(i)));
+        }
+        
+        const int cut_at = std::rand() % p1_chromo.size();
+        std::string child;
+        child.append(p1_chromo.substr(0, cut_at)); // Start to cut_at.
+        child.append(p2_chromo.substr(cut_at)); // from cut_at pos to end.
+
+        // Convert now to actual times 
+        for(unsigned int j = 0; j < this->flyTimes.size(); j++){
+            //FIXME: The individual has to be created
+            //ind.flyTimes.at(i) = bitStr2int(child.substr(j * MAX_BIT_SIZE, MAX_BIT_SIZE)); // From pos, and take the next MAX_BIT_SIZE
+        }
+    }
+    else if(crossType == CROSS_DOUBLE_POINT){
+        // From the full chromosome. At a given random point 1, interchange the parent 1 bits by the partner's bits. Do the same a second time at point 2.
+        std::string p1_chromo;
+        std::string p2_chromo;
+        for(unsigned int i = 0; i < this->flyTimes.size(); i++){
+            p1_chromo.append(int2bitStr(this->flyTimes.at(i)));
+            p2_chromo.append(int2bitStr(partner.flyTimes.at(i)));
+        }
+        
+        const int cut_at_1 = rand_rng(1, p1_chromo.size() - 2); // From above 1, to at least leave 1 for the second cut.
+        const int cut_at_2 = rand_rng(cut_at_1 + 1,  p1_chromo.size() - 1); // From at least one bit after cut one to end leave at least one for this cut.
+        std::string child;
+        child.append(p1_chromo.substr(0, cut_at_1)); 
+        child.append(p2_chromo.substr(cut_at_1, cut_at_2 - cut_at_1));
+        child.append(p1_chromo.substr(cut_at_2));
+
+        // Convert now to actual times 
+        for(unsigned int j = 0; j < this->flyTimes.size(); j++){
+            //FIXME: The individual has to be created
+            //ind.flyTimes.at(i) = bitStr2int(child.substr(j * MAX_BIT_SIZE, MAX_BIT_SIZE)); // From pos, and take the next MAX_BIT_SIZE
+        }
+    }
+    else{
+        throw "Unkown crossover type!";
+    }
     
 }
 
@@ -61,21 +127,14 @@ void Individual::init(){
     /**
      * @brief Used to initizilize the individual to a random vector of times (within the windows).
      */
-    float max_dep = this->problem->departureWindow.second - this->problem->departureWindow.first;
-    float dep_time = this->problem->departureWindow.first + rand() % (int)max_dep;
-    this->flyTimes.push_back(dep_time); // first value in vector is departure date in JL format
-    
-    for(const auto& fb_wind: this->problem->flybyWindows ){
-        float fb_time = fb_wind.first + rand() % (int)(fb_wind.second - fb_wind.first);
-        this->flyTimes.push_back(fb_time);
+    for(const auto& window: this->problem->timeWindows){
+        int t = window.first + rand() % (window.second - window.first);
+        this->flyTimes.push_back(t);
     }
 }
 
-int Individual::times2bit() const{
 
-}
-
-float Individual::getFlyTime() const{
+int Individual::getFlyTime() const{
 
 }
 
@@ -88,9 +147,9 @@ void Individual::evaluate(){
     // Per planets
     for(unsigned int i = 0; i < this->problem->planets.size() - 2; i++){
         double r1[3], v1[3], r2[3], v2[3], r3[3], v3[3];
-        double T1 = std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + i + 1, 0.0); // Times are in format [Departure T, +ΔT1, +ΔT2,..]
-        double T2 = std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 1) + 1, 0.0);
-        double T3 = std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 2) + 1, 0.0); 
+        double T1 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + i + 1, 0.0); // Times are in format [Departure T, +ΔT1, +ΔT2,..]
+        double T2 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 1) + 1, 0.0);
+        double T3 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 2) + 1, 0.0); 
 
         orbit::ephemeris(this->problem->planets.at(i).prm, T1, r1, v1); // segfault here
         orbit::ephemeris(this->problem->planets.at(i + 1).prm, T2, r2, v2);
@@ -117,6 +176,7 @@ void Individual::evaluate(){
 
         std::cout << "  Turning angle: " << rad2deg(delta) << "º" << std::endl;
         std::cout << "  Periapsis rad: " << peri << "m" << std::endl;
+        std::cout << "  Fitness      : " << this->cost << std::endl;  
         std::cout << "  Total dV     : " << dV << "m/s" << std::endl;
     }
 }
@@ -183,7 +243,7 @@ void Population::selection(){
     /**
      * @brief Selects the individuals that will undergo reporduction/crossover.
      */
-    if(this->geParameters.roulette){
+    if(this->geParameters.selectionType == SELECTION_ROULETTE){
         // Roulette Operattor - TODO SET AS AND ENUM AND TRY FURTHER METHODS
         
         float sum_adjusted_ft = 0.f;
@@ -193,12 +253,15 @@ void Population::selection(){
             sum_adjusted_ft += 1/(1 + this->population.at(i).fitness);
         }
         // Roulette wheel
+        std::cout << std::endl << "Fitness: ";
         for(unsigned int j = 0; j < N_POPULATION; j++){
             roulette[j] = (1/(1 + this->population.at(j).fitness)) / (sum_adjusted_ft);
+            std::cout << roulette[j] << ", ";
         }
+        std::cout << std::endl;
 
         // Do the selection
-        for(unsigned int k = 0; k < N_POPULATION - this->geParameters.elitism; k++){
+        for(unsigned int k = 0; k < N_POPULATION - this->geParameters.elitism_n; k++){
             float r = rand_d();
             float curr = roulette[0];
             int idx = 0;
@@ -210,13 +273,13 @@ void Population::selection(){
         }
         
     }
-    else{
+    else if(this->geParameters.selectionType == SELECTION_TOURNAMENT){
         // Tournament method
-        for(unsigned int i = 1; i < N_POPULATION - this->geParameters.elitism; i++){
+        for(unsigned int i = 1; i < N_POPULATION - this->geParameters.elitism_n; i++){
 
-            int rnd_idx[this->geParameters.n_tournament];
-            for(int r; r < this->geParameters.n_tournament; r++){
-                rnd_idx[r] = rand_rng(this->geParameters.elitism, N_POPULATION - this->geParameters.elitism);
+            int rnd_idx[TOURNAMENT_N];
+            for(int r; r < TOURNAMENT_N; r++){
+                rnd_idx[r] = rand_rng(this->geParameters.elitism_n, N_POPULATION - this->geParameters.elitism_n);
             }
             
             float best_fit = -1.f;
@@ -234,6 +297,9 @@ void Population::selection(){
             this->newPopulation.push_back(this->population.at(fitest_idx)); // selected!
         }
     }
+    else{
+        throw "Unknow selection method";
+    }
 
 }
 
@@ -241,7 +307,6 @@ void Population::crossOver(){
     /**
      * @brief Cross over two parents
      */
-
 }
 
 void Population::mutate(){
@@ -249,7 +314,7 @@ void Population::mutate(){
      * @brief Mutate the generation.
      */
     for(auto ind: this->population){
-        if(rand_d() <= this->geParameters.mutation){ // if probability of mutation
+        if(rand_d() <= this->geParameters.mutationProb){ // if probability of mutation
             ind.createMutation();
         }
     }
@@ -265,7 +330,7 @@ void Population::elitism(){
         throw "The new population vector must be cleaned before elitism operator";
     }
 
-    for(unsigned int i = 0; i < this->geParameters.elitism; i++){
+    for(unsigned int i = 0; i < this->geParameters.elitism_n; i++){
         this->newPopulation.push_back(this->population.at(i));
     }
 }
@@ -277,8 +342,7 @@ void Population::evolveNewGeneration(){
      */
     for(auto& ind: this->population){
         ind.evaluate();
-        ind.fitness = ind.cost; // delerte me, do somewhere else (TODO);
-
+        ind.fitness = ind.cost; // delerte me, do somewhere else (TODO:);
     }
 }
 

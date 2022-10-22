@@ -4,9 +4,10 @@
 #include <cmath>
 #include <string>
 #include <ctime>
-#include "curl/curl.h"
-
+#include <bitset>
 #include "astro.h"
+
+#define MAX_BIT_SIZE 11  // 2048 (max time per leg ~ 11 years).
 
 void minus2(const double* v1, const double* v2, double* out);
 
@@ -35,6 +36,12 @@ double rad2deg(const double x);
 float rand_d();
 
 int rand_rng(int min, int max);
+
+std::string int2bitStr(const int x);
+
+int bitStr2int(const std::string x);
+
+std::string uniformBitstrCross(const std::string s1, const std::string s2);
 
 
 #endif //UTILITIES_H
