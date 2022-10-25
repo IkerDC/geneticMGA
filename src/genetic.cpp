@@ -34,9 +34,10 @@ Individual::~Individual(){
 }
 
 
-Individual Individual::mate(const Individual& partner, int crossType){
+void Individual::mate(const Individual& partner, int crossType){
     /**
-     * @brief Matting function that creates a new individual.
+     * @brief Matting function that creates a new individual. 
+     * The new individual is actually the current one, value on him are update. Parent -> Transforms to "child".
      */
     if(crossType == CROSS_UNIFORM){
         // Take the full chromosomes. Pick randmly the bit for the child from one of the parents.
@@ -49,9 +50,9 @@ Individual Individual::mate(const Individual& partner, int crossType){
             // Check that the new gene is within the problem's bounds. Else, adjust them. NOTE: not ideal (maybe could be added to the penalty function).
             child_time = (child_time >= this->problem->timeWindows.at(i).first) ? child_time : this->problem->timeWindows.at(i).first;
             child_time = (child_time <= this->problem->timeWindows.at(i).second) ? child_time : this->problem->timeWindows.at(i).second;
-            // FIXME: Individual child = this; child.flyTimes.at(i) = child_time;   
-            
-
+            // "New Individual"
+            this->flyTimes.at(i) = child_time;
+            // TODO: Review   
         }
     }
     else if(crossType == CROSS_SINGLE_GENE){
@@ -65,7 +66,9 @@ Individual Individual::mate(const Individual& partner, int crossType){
         // Check that the new gene is within the problem's bounds. Else, adjust them. NOTE: not ideal (maybe could be added to the penalty function).
         child_time = (child_time >= this->problem->timeWindows.at(r_gene).first) ? child_time : this->problem->timeWindows.at(r_gene).first;
         child_time = (child_time <= this->problem->timeWindows.at(r_gene).second) ? child_time : this->problem->timeWindows.at(r_gene).second;
-        // FIXME: Individual child = this; child.flyTimes.at(r_gene) = child_time;   
+        // "New Individual"
+        this->flyTimes.at(r_gene) = child_time;
+        // TODO: Review
 
     }
     else if(crossType == CROSS_SINGLE_POINT){
@@ -84,8 +87,9 @@ Individual Individual::mate(const Individual& partner, int crossType){
 
         // Convert now to actual times 
         for(unsigned int j = 0; j < this->flyTimes.size(); j++){
-            //FIXME: The individual has to be created
-            //ind.flyTimes.at(i) = bitStr2int(child.substr(j * MAX_BIT_SIZE, MAX_BIT_SIZE)); // From pos, and take the next MAX_BIT_SIZE
+            // "New Individual"
+            this->flyTimes.at(j) = bitStr2int(child.substr(j * MAX_BIT_SIZE, MAX_BIT_SIZE));
+            //TODO: Review
         }
     }
     else if(crossType == CROSS_DOUBLE_POINT){
@@ -106,8 +110,9 @@ Individual Individual::mate(const Individual& partner, int crossType){
 
         // Convert now to actual times 
         for(unsigned int j = 0; j < this->flyTimes.size(); j++){
-            //FIXME: The individual has to be created
-            //ind.flyTimes.at(i) = bitStr2int(child.substr(j * MAX_BIT_SIZE, MAX_BIT_SIZE)); // From pos, and take the next MAX_BIT_SIZE
+            // "New Individual"
+            this->flyTimes.at(j) = bitStr2int(child.substr(j * MAX_BIT_SIZE, MAX_BIT_SIZE));
+            //TODO: Review
         }
     }
     else{
@@ -237,6 +242,12 @@ void Population::sortPopulation(){
     std::sort(this->population.begin(), this->population.end());
 }
 
+void Population::plotFitnessEvolution(){
+    /**
+     * @brief Plots the fitness evolution.
+     */
+    // TODO: Finsih me
+}
 
 // ----- Genetic operators. -----
 void Population::selection(){
@@ -307,6 +318,22 @@ void Population::crossOver(){
     /**
      * @brief Cross over two parents
      */
+
+    // Sanity check
+    if(this->newPopulation.size() != N_POPULATION){
+        throw "The population expected to be crossed is missing individuales. Size is different from N_POPULATION";
+    }
+    
+    for(unsigned int i = N_POPULATION - this->geParameters.elitism_n; i < N_POPULATION - 1; i = i+2){
+        if(rand_d() <= this->geParameters.crossOverProb){
+            // CrossOver (Each cross creates a chill out from the parent - 2 parents -> 2 cross -> 2 childs).
+            this->newPopulation.at(i).mate(this->newPopulation.at(i+1), this->geParameters.crossOverType);
+            this->newPopulation.at(i+1).mate(this->newPopulation.at(i), this->geParameters.crossOverType);
+        }
+        else {
+            // "Reproduction": Do nothing, include in new generation as they are.
+        }
+    }
 }
 
 void Population::mutate(){
@@ -366,6 +393,8 @@ void Population::runGeneration(){
         this->population = this->newPopulation;
         this->newPopulation.clear();
 
+        // Record evolution of the fitness
+        this->fitnessEvolution.push_back(this->population.at(0).fitness); 
         g++;
     }
 

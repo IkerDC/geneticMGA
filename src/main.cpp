@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
     GenOperators genOp;
     genOp.elitism_n = 1;
     genOp.selectionType = SELECTION_ROULETTE;
-    genOp.crossOverProb = CROSS_DOUBLE_POINT;
+    genOp.crossOverProb = CROSS_UNIFORM;
     genOp.crossOverProb = 0.9;
     genOp.mutationProb = 0.05;
 

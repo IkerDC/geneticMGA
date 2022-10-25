@@ -64,7 +64,7 @@ public:
     Individual(ProblemDefinition* prob);
     ~Individual();
     
-    Individual mate(const Individual& partner, int crossType); // Mate with another individual to create a new child.
+    void mate(const Individual& partner, int crossType); // Mate with another individual to create a new child (self parent transforms to child).
     void createMutation();
 
     void init();
@@ -82,6 +82,7 @@ public:
 class Population{
 private:
     void sortPopulation();
+    std::vector<float> fitnessEvolution;
 
 public:
     std::vector<Individual> population;
@@ -93,6 +94,7 @@ public:
     ~Population();
 
     void inception();   // let the civilization begin.
+    void plotFitnessEvolution();
 
     // Genetic operators.
     void selection();
