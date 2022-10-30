@@ -41,19 +41,11 @@ void Individual::mate(const Individual& partner, int crossType){
      */
     if(crossType == CROSS_UNIFORM){
         // Take the full chromosomes. Pick randmly the bit for the child from one of the parents.
-        for(unsigned int i = 0; i < this->flyTimes.size(); i++){
-            std::string p1_g = int2bitStr(this->flyTimes.at(i));
-            std::string p2_g = int2bitStr(partner.flyTimes.at(i));
-            std::string child_g = uniformBitstrCross(p1_g, p2_g);
+        std::string p1_ch = this->getChromosome();
+        std::string p2_ch = partner.getChromosome();
+        std::string child_ch = uniformBitstrCross(p1_ch, p2_ch);
 
-            int child_time = bitStr2int(child_g);
-            // Check that the new gene is within the problem's bounds. Else, adjust them. NOTE: not ideal (maybe could be added to the penalty function).
-            child_time = (child_time >= this->problem->timeWindows.at(i).first) ? child_time : this->problem->timeWindows.at(i).first;
-            child_time = (child_time <= this->problem->timeWindows.at(i).second) ? child_time : this->problem->timeWindows.at(i).second;
-            // "New Individual"
-            this->flyTimes.at(i) = child_time;
-            // TODO: Review   
-        }
+        this->setChromosome(child_ch);
     }
     else if(crossType == CROSS_SINGLE_GENE){
         // Select a random Gene. Do CROSS_UNIFORM only on that gene.
@@ -62,44 +54,24 @@ void Individual::mate(const Individual& partner, int crossType){
         std::string p2_g = int2bitStr(partner.flyTimes.at(r_gene));
         std::string child_g = uniformBitstrCross(p1_g, p2_g);
 
-        int child_time = bitStr2int(child_g);
-        // Check that the new gene is within the problem's bounds. Else, adjust them. NOTE: not ideal (maybe could be added to the penalty function).
-        child_time = (child_time >= this->problem->timeWindows.at(r_gene).first) ? child_time : this->problem->timeWindows.at(r_gene).first;
-        child_time = (child_time <= this->problem->timeWindows.at(r_gene).second) ? child_time : this->problem->timeWindows.at(r_gene).second;
-        // "New Individual"
-        this->flyTimes.at(r_gene) = child_time;
-        // TODO: Review
-
+        this->setGene(child_g, r_gene);
     }
     else if(crossType == CROSS_SINGLE_POINT){
         // From the full chromosome. At a given random point, interchange the parent 1 bits by the partner's bits.
-        std::string p1_chromo;
-        std::string p2_chromo;
-        for(unsigned int i = 0; i < this->flyTimes.size(); i++){
-            p1_chromo.append(int2bitStr(this->flyTimes.at(i)));
-            p2_chromo.append(int2bitStr(partner.flyTimes.at(i)));
-        }
+        std::string p1_chromo = this->getChromosome();
+        std::string p2_chromo = partner.getChromosome();
         
         const int cut_at = std::rand() % p1_chromo.size();
         std::string child;
         child.append(p1_chromo.substr(0, cut_at)); // Start to cut_at.
         child.append(p2_chromo.substr(cut_at)); // from cut_at pos to end.
 
-        // Convert now to actual times 
-        for(unsigned int j = 0; j < this->flyTimes.size(); j++){
-            // "New Individual"
-            this->flyTimes.at(j) = bitStr2int(child.substr(j * MAX_BIT_SIZE, MAX_BIT_SIZE));
-            //TODO: Review
-        }
+        this->setChromosome(child);
     }
     else if(crossType == CROSS_DOUBLE_POINT){
         // From the full chromosome. At a given random point 1, interchange the parent 1 bits by the partner's bits. Do the same a second time at point 2.
-        std::string p1_chromo;
-        std::string p2_chromo;
-        for(unsigned int i = 0; i < this->flyTimes.size(); i++){
-            p1_chromo.append(int2bitStr(this->flyTimes.at(i)));
-            p2_chromo.append(int2bitStr(partner.flyTimes.at(i)));
-        }
+        std::string p1_chromo = this->getChromosome();
+        std::string p2_chromo = partner.getChromosome();
         
         const int cut_at_1 = rand_rng(1, p1_chromo.size() - 2); // From above 1, to at least leave 1 for the second cut.
         const int cut_at_2 = rand_rng(cut_at_1 + 1,  p1_chromo.size() - 1); // From at least one bit after cut one to end leave at least one for this cut.
@@ -108,12 +80,7 @@ void Individual::mate(const Individual& partner, int crossType){
         child.append(p2_chromo.substr(cut_at_1, cut_at_2 - cut_at_1));
         child.append(p1_chromo.substr(cut_at_2));
 
-        // Convert now to actual times 
-        for(unsigned int j = 0; j < this->flyTimes.size(); j++){
-            // "New Individual"
-            this->flyTimes.at(j) = bitStr2int(child.substr(j * MAX_BIT_SIZE, MAX_BIT_SIZE));
-            //TODO: Review
-        }
+        this->setChromosome(child);
     }
     else{
         throw "Unkown crossover type!";
@@ -125,6 +92,12 @@ void Individual::createMutation(){
     /**
      * @brief Generates mutation in the individual.
      */
+    std::string chromo = this->getChromosome();
+    
+    int mutate_at = rand_rng(0, chromo.size() - 1);
+    chromo.at(mutate_at) = (chromo.at(mutate_at) == '0')? '1' : '0';
+
+    this->setChromosome(chromo);
 }
 
 
@@ -169,20 +142,20 @@ void Individual::evaluate(){
         orbit::patched_conic(v_arr2, v_dep2, v2, this->problem->planets.at(i + 1).mu, dV, delta, peri);
 
         // Cost update if departure too.
-        std::cout << "------------------------------------------" << std::endl;
+        // std::cout << "------------------------------------------" << std::endl;
         if(i == 0){
             this->updateDepartureCost(norm(v_dep1));
-            std::cout << "  Departure cost: " << norm(v_dep1) << "m/s" << std::endl;
+            //std::cout << "  Departure cost: " << norm(v_dep1) << "m/s" << std::endl;
         }
 
         // Cost update
         this->updateCost(this->problem->planets.at(i + 1), dV, delta, peri);
 
 
-        std::cout << "  Turning angle: " << rad2deg(delta) << "º" << std::endl;
-        std::cout << "  Periapsis rad: " << peri << "m" << std::endl;
-        std::cout << "  Fitness      : " << this->cost << std::endl;  
-        std::cout << "  Total dV     : " << dV << "m/s" << std::endl;
+        // std::cout << "  Turning angle: " << rad2deg(delta) << "º" << std::endl;
+        // std::cout << "  Periapsis rad: " << peri << "m" << std::endl;
+        // std::cout << "  Fitness      : " << this->cost << std::endl;  
+        // std::cout << "  Total dV     : " << dV << "m/s" << std::endl;
     }
 }
 
@@ -208,6 +181,52 @@ void Individual::updateDepartureCost(double dV){
      */
     this->cost += dV;
 }
+
+std::string Individual::getChromosome() const{
+    /**
+     * @brief Get full chromosome in a bitstring
+     */
+    std::string chromo;
+    for(const auto& t: this->flyTimes){
+        chromo.append(int2bitStr(t));
+    }
+    return chromo;
+}
+
+std::string Individual::getGene(int at) const{
+    /**
+     * @brief Get a given gene in bitstring format;
+     */
+    if(at >= this->flyTimes.size() || at < 0){
+        throw "Gene position out of range";
+    }
+    return int2bitStr(this->flyTimes.at(at));
+}
+
+void Individual::setChromosome(std::string chromo){
+    /**
+     * @brief Given a full chromosome, convert to flight times and update it.
+     */
+    for(unsigned int i = 0; i < this->flyTimes.size(); i++){
+        this->setGene(chromo.substr(i * MAX_BIT_SIZE, MAX_BIT_SIZE), i);
+    }   
+}
+
+void Individual::setGene(std::string gene, int at){
+    /**
+     * @brief Given a gene and position convert to flytime and update.
+     */
+    if(at >= this->flyTimes.size() || at < 0){
+        throw "Gene position out of range";
+    }
+    int new_time = bitStr2int(gene);
+
+    new_time = (new_time >= this->problem->timeWindows.at(at).first) ? new_time: this->problem->timeWindows.at(at).first;
+    new_time = (new_time <= this->problem->timeWindows.at(at).second) ? new_time : this->problem->timeWindows.at(at).second;
+
+    this->flyTimes.at(at) = new_time;
+}
+
 
 
 /*
@@ -264,12 +283,12 @@ void Population::selection(){
             sum_adjusted_ft += 1/(1 + this->population.at(i).fitness);
         }
         // Roulette wheel
-        std::cout << std::endl << "Fitness: ";
+        //std::cout << std::endl << "Fitness: ";
         for(unsigned int j = 0; j < N_POPULATION; j++){
             roulette[j] = (1/(1 + this->population.at(j).fitness)) / (sum_adjusted_ft);
-            std::cout << roulette[j] << ", ";
+            //std::cout << roulette[j] << ", ";
         }
-        std::cout << std::endl;
+        //std::cout << std::endl;
 
         // Do the selection
         for(unsigned int k = 0; k < N_POPULATION - this->geParameters.elitism_n; k++){
@@ -324,11 +343,14 @@ void Population::crossOver(){
         throw "The population expected to be crossed is missing individuales. Size is different from N_POPULATION";
     }
     
-    for(unsigned int i = N_POPULATION - this->geParameters.elitism_n; i < N_POPULATION - 1; i = i+2){
+    // From elitism size upwards, there are the selected individuals.
+    for(unsigned int i = this->geParameters.elitism_n; i < N_POPULATION - 1; i = i+2){
         if(rand_d() <= this->geParameters.crossOverProb){
             // CrossOver (Each cross creates a chill out from the parent - 2 parents -> 2 cross -> 2 childs).
+            Individual temp_p1 = this->newPopulation.at(i); // Direct update of child in parent. Should temp parent 1 (first to be changed).
+
             this->newPopulation.at(i).mate(this->newPopulation.at(i+1), this->geParameters.crossOverType);
-            this->newPopulation.at(i+1).mate(this->newPopulation.at(i), this->geParameters.crossOverType);
+            this->newPopulation.at(i+1).mate(temp_p1, this->geParameters.crossOverType);
         }
         else {
             // "Reproduction": Do nothing, include in new generation as they are.

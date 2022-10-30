@@ -26,9 +26,9 @@ int main(int argc, char *argv[]){
     
     // Genetic operation parameters setting.
     GenOperators genOp;
-    genOp.elitism_n = 1;
+    genOp.elitism_n = 2;
     genOp.selectionType = SELECTION_ROULETTE;
-    genOp.crossOverProb = CROSS_UNIFORM;
+    genOp.crossOverType = CROSS_UNIFORM;
     genOp.crossOverProb = 0.9;
     genOp.mutationProb = 0.05;
 

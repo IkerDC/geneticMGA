@@ -14,15 +14,15 @@
 #include "orbital_mechanics.h"
 #include "numeric"
 
-#define N_POPULATION 5
-#define GEN_LIMIT 5
+#define N_POPULATION 50
+#define GEN_LIMIT 50
 
 #define SELECTION_ROULETTE      0
 #define SELECTION_TOURNAMENT    1
 
 #define TOURNAMENT_N    2
 
-#define CROSS_UNIFORM       0
+#define CROSS_UNIFORM   0
 #define CROSS_SINGLE_GENE   1
 #define CROSS_SINGLE_POINT  2
 #define CROSS_DOUBLE_POINT  3
@@ -53,6 +53,8 @@ class Individual {
 private:
     void updateDepartureCost(double dV);
     void updateCost(const Planet& planet, double dV, double delta, double peri);
+    void setChromosome(std::string chromo);
+    void setGene(std::string gene, int at);
 
 public:
     std::vector<int> flyTimes;          // Chromosome (each variable is a gene).
@@ -63,6 +65,8 @@ public:
     Individual();
     Individual(ProblemDefinition* prob);
     ~Individual();
+    std::string getChromosome() const;
+    std::string getGene(int at) const;
     
     void mate(const Individual& partner, int crossType); // Mate with another individual to create a new child (self parent transforms to child).
     void createMutation();
