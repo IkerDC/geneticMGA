@@ -129,8 +129,11 @@ void MGAProblem::print() const{
     /**
      * @brief Pretty print of the whole problem.
      */
+    std::cout << "** Departure cost: "<< norm(this->transfers.at(0).v_dep) << "m/s" << std::endl;
     for(const auto& fb: this->flybys){
         std::cout << "=== FLYBY at: " << fb.planet->name << " ===" << std::endl;
         fb.print();
     }
+    std::cout << "** Arrival speed: "<< norm(this->transfers.back().v_arr) << "m/s" << std::endl;
+    std::cout << std::endl;
 }

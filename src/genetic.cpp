@@ -182,7 +182,6 @@ void Individual::evaluate(){
         double T1 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + i + 1, 0.0); // Times are in format [Departure T, +ΔT1, +ΔT2,..]
         double T2 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 1) + 1, 0.0);
         double T3 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 2) + 1, 0.0); 
-
         orbit::ephemeris(this->problem->planets.at(i).prm, T1, r1, v1); // segfault here
         orbit::ephemeris(this->problem->planets.at(i + 1).prm, T2, r2, v2);
         orbit::ephemeris(this->problem->planets.at(i + 2).prm, T3, r3, v3);
@@ -199,7 +198,6 @@ void Individual::evaluate(){
         // std::cout << "------------------------------------------" << std::endl;
         if(i == 0){
             this->updateDepartureCost(norm(v_dep1));
-            //std::cout << "  Departure cost: " << norm(v_dep1) << "m/s" << std::endl;
         }
 
         // Cost update

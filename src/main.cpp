@@ -37,11 +37,9 @@ int main(int argc, char *argv[]){
     std::pair<int, int> dep_window = {0, 1095}; // NOTE: First value (min) should be 0 as it is the departure!
     std::pair<int, int> t1_window = {50, 2000};
     std::pair<int, int> t2_window = {50, 2000};
-    std::pair<int, int> t3_window = {50, 2000};
 
     ProblemDefinition prob = ProblemDefinition(Tdep);
     prob.add_planet(EARTH, dep_window.first, dep_window.second);
-    prob.add_planet(MARS, t3_window.first, t3_window.second);
     prob.add_planet(JUPITER, t1_window.first, t1_window.second);
     prob.add_planet(SATURN, t2_window.first, t2_window.second);
 
@@ -55,5 +53,13 @@ int main(int argc, char *argv[]){
     mga.compute();
     mga.print();
     mga.plot();
+
+    MGAProblem mga_real = MGAProblem();
+    mga_real.add_planet(EARTH, 2443391);
+    mga_real.add_planet(JUPITER, 2444009);
+    mga_real.add_planet(SATURN, 2444555);
+    mga_real.compute();
+    mga_real.print();
+    mga_real.plot();
     
 }
