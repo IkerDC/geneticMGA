@@ -33,6 +33,49 @@ Individual::~Individual(){
 
 }
 
+std::string Individual::getChromosome() const{
+    /**
+     * @brief Get full chromosome in a bitstring
+     */
+    std::string chromo;
+    for(const auto& t: this->flyTimes){
+        chromo.append(int2bitStr(t));
+    }
+    return chromo;
+}
+
+std::string Individual::getGene(int at) const{
+    /**
+     * @brief Get a given gene in bitstring format;
+     */
+    if(at >= this->flyTimes.size() || at < 0){
+        throw "Gene position out of range";
+    }
+    return int2bitStr(this->flyTimes.at(at));
+}
+
+void Individual::setChromosome(std::string chromo){
+    /**
+     * @brief Given a full chromosome, convert to flight times and update it.
+     */
+    for(unsigned int i = 0; i < this->flyTimes.size(); i++){
+        this->setGene(chromo.substr(i * MAX_BIT_SIZE, MAX_BIT_SIZE), i);
+    }   
+}
+
+void Individual::setGene(std::string gene, int at){
+    /**
+     * @brief Given a gene and position convert to flytime and update.
+     */
+    if(at >= this->flyTimes.size() || at < 0){
+        throw "Gene position out of range";
+    }
+    int new_time = bitStr2int(gene);
+    new_time = (new_time >= this->problem->timeWindows.at(at).first) ? new_time: this->problem->timeWindows.at(at).first;
+    new_time = (new_time <= this->problem->timeWindows.at(at).second) ? new_time : this->problem->timeWindows.at(at).second;
+    this->flyTimes.at(at) = new_time;
+}
+
 
 void Individual::mate(const Individual& partner, int crossType){
     /**
@@ -81,6 +124,17 @@ void Individual::mate(const Individual& partner, int crossType){
         child.append(p1_chromo.substr(cut_at_2));
 
         this->setChromosome(child);
+    }
+    else if (crossType == CROSS_PERSONALIZED){
+        // Times are crossed staticly. As Half points (centroids) between parents depending on their fitness.
+        // Done per gene to have different solution, otherwise per 2 parents there exist only one solution = 1 child.
+        const int r_gene = rand() % this->flyTimes.size();
+        float fit_w = (this->fitness / (this->fitness + partner.fitness)); 
+        int sign = (this->flyTimes.at(r_gene) > partner.flyTimes.at(r_gene))? -1 : 1;
+        float centroid_t = this->flyTimes.at(r_gene) + sign * std::fabs(this->flyTimes.at(r_gene) - partner.flyTimes.at(r_gene))*fit_w; 
+        std::string chlild_t = int2bitStr(centroid_t);
+        this->setGene(chlild_t, r_gene);
+
     }
     else{
         throw "Unkown crossover type!";
@@ -182,50 +236,6 @@ void Individual::updateDepartureCost(double dV){
     this->cost += dV;
 }
 
-std::string Individual::getChromosome() const{
-    /**
-     * @brief Get full chromosome in a bitstring
-     */
-    std::string chromo;
-    for(const auto& t: this->flyTimes){
-        chromo.append(int2bitStr(t));
-    }
-    return chromo;
-}
-
-std::string Individual::getGene(int at) const{
-    /**
-     * @brief Get a given gene in bitstring format;
-     */
-    if(at >= this->flyTimes.size() || at < 0){
-        throw "Gene position out of range";
-    }
-    return int2bitStr(this->flyTimes.at(at));
-}
-
-void Individual::setChromosome(std::string chromo){
-    /**
-     * @brief Given a full chromosome, convert to flight times and update it.
-     */
-    for(unsigned int i = 0; i < this->flyTimes.size(); i++){
-        this->setGene(chromo.substr(i * MAX_BIT_SIZE, MAX_BIT_SIZE), i);
-    }   
-}
-
-void Individual::setGene(std::string gene, int at){
-    /**
-     * @brief Given a gene and position convert to flytime and update.
-     */
-    if(at >= this->flyTimes.size() || at < 0){
-        throw "Gene position out of range";
-    }
-    int new_time = bitStr2int(gene);
-
-    new_time = (new_time >= this->problem->timeWindows.at(at).first) ? new_time: this->problem->timeWindows.at(at).first;
-    new_time = (new_time <= this->problem->timeWindows.at(at).second) ? new_time : this->problem->timeWindows.at(at).second;
-
-    this->flyTimes.at(at) = new_time;
-}
 
 
 
@@ -266,6 +276,9 @@ void Population::plotFitnessEvolution(){
      * @brief Plots the fitness evolution.
      */
     // TODO: Finsih me
+    for(const auto& f: this->fitnessEvolution){
+        std::cout << f << std::endl;
+    }
 }
 
 // ----- Genetic operators. -----
@@ -390,6 +403,8 @@ void Population::evolveNewGeneration(){
      * @brief Evaluates each individual
      */
     for(auto& ind: this->population){
+        ind.cost = 0;
+        ind.fitness = 0;
         ind.evaluate();
         ind.fitness = ind.cost; // delerte me, do somewhere else (TODO:);
     }
@@ -419,6 +434,15 @@ void Population::runGeneration(){
         this->fitnessEvolution.push_back(this->population.at(0).fitness); 
         g++;
     }
+
+}
+
+
+void Population::mateIndividuals(Individual parent1, Individual parent2){
+    /**
+     * @brief Mate two indivuals to produce to childs at the same time.
+     * Child will be the oposite.
+     */
 
 }
 

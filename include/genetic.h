@@ -14,10 +14,10 @@
 #include "orbital_mechanics.h"
 #include "numeric"
 
-#define N_POPULATION 50
-#define GEN_LIMIT 50
+#define N_POPULATION    300
+#define GEN_LIMIT  250
 
-#define SELECTION_ROULETTE      0
+#define SELECTION_ROULETTE  0
 #define SELECTION_TOURNAMENT    1
 
 #define TOURNAMENT_N    2
@@ -26,6 +26,7 @@
 #define CROSS_SINGLE_GENE   1
 #define CROSS_SINGLE_POINT  2
 #define CROSS_DOUBLE_POINT  3
+#define CROSS_PERSONALIZED  4
 
 struct GenOperators{
     int elitism_n;
@@ -98,6 +99,7 @@ public:
     ~Population();
 
     void inception();   // let the civilization begin.
+    void mateIndividuals(Individual parent1, Individual parent2);
     void plotFitnessEvolution();
 
     // Genetic operators.

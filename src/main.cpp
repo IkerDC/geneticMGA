@@ -26,9 +26,9 @@ int main(int argc, char *argv[]){
     
     // Genetic operation parameters setting.
     GenOperators genOp;
-    genOp.elitism_n = 2;
+    genOp.elitism_n = 10;
     genOp.selectionType = SELECTION_ROULETTE;
-    genOp.crossOverType = CROSS_UNIFORM;
+    genOp.crossOverType = CROSS_DOUBLE_POINT;
     genOp.crossOverProb = 0.9;
     genOp.mutationProb = 0.05;
 
@@ -37,9 +37,11 @@ int main(int argc, char *argv[]){
     std::pair<int, int> dep_window = {0, 1095}; // NOTE: First value (min) should be 0 as it is the departure!
     std::pair<int, int> t1_window = {50, 2000};
     std::pair<int, int> t2_window = {50, 2000};
+    std::pair<int, int> t3_window = {50, 2000};
 
     ProblemDefinition prob = ProblemDefinition(Tdep);
     prob.add_planet(EARTH, dep_window.first, dep_window.second);
+    prob.add_planet(MARS, t3_window.first, t3_window.second);
     prob.add_planet(JUPITER, t1_window.first, t1_window.second);
     prob.add_planet(SATURN, t2_window.first, t2_window.second);
 
@@ -47,10 +49,11 @@ int main(int argc, char *argv[]){
     Population population = Population(genOp, &prob);
     population.inception();
     population.runGeneration();
+    population.plotFitnessEvolution();
 
-    // MGAProblem mga = MGAProblem(population.population.at(0)); //FIXME: NOT SURE THIS WORKS RIGHT! SHOULD BE CHECKED!
-    // mga.compute();
-    // mga.print();
-    // mga.plot();
+    MGAProblem mga = MGAProblem(population.population.at(0)); //FIXME: NOT SURE THIS WORKS RIGHT! SHOULD BE CHECKED!
+    mga.compute();
+    mga.print();
+    mga.plot();
     
 }
