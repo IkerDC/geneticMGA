@@ -33,33 +33,42 @@ int main(int argc, char *argv[]){
     genOp.mutationProb = 0.05;
 
     // Problem definition and times settings
-    int Tdep = 2443145;
+    float Tdep = 2443145;
     std::pair<int, int> dep_window = {0, 1095}; // NOTE: First value (min) should be 0 as it is the departure!
     std::pair<int, int> t1_window = {50, 2000};
     std::pair<int, int> t2_window = {50, 2000};
+    float f = bitStr2Time(time2bitStr(34.78));
+    f = bitStr2Time(time2bitStr(1.183));
+    f = bitStr2Time(time2bitStr(899.048));
+    f = bitStr2Time(time2bitStr(154.108));
+    f = bitStr2Time(time2bitStr(0.078));
 
-    ProblemDefinition prob = ProblemDefinition(Tdep);
-    prob.add_planet(EARTH, dep_window.first, dep_window.second);
-    prob.add_planet(JUPITER, t1_window.first, t1_window.second);
-    prob.add_planet(SATURN, t2_window.first, t2_window.second);
 
-    // Population and genetic algorithm
-    Population population = Population(genOp, &prob);
-    population.inception();
-    population.runGeneration();
-    population.plotFitnessEvolution();
 
-    MGAProblem mga = MGAProblem(population.population.at(0)); //FIXME: NOT SURE THIS WORKS RIGHT! SHOULD BE CHECKED!
-    mga.compute();
-    mga.print();
-    mga.plot();
 
-    MGAProblem mga_real = MGAProblem();
-    mga_real.add_planet(EARTH, 2443391);
-    mga_real.add_planet(JUPITER, 2444009);
-    mga_real.add_planet(SATURN, 2444555);
-    mga_real.compute();
-    mga_real.print();
-    mga_real.plot();
+
+    // ProblemDefinition prob = ProblemDefinition(Tdep);
+    // prob.add_planet(EARTH, dep_window.first, dep_window.second);
+    // prob.add_planet(JUPITER, t1_window.first, t1_window.second);
+    // prob.add_planet(SATURN, t2_window.first, t2_window.second);
+
+    // // Population and genetic algorithm
+    // Population population = Population(genOp, &prob);
+    // population.inception();
+    // population.runGeneration();
+    // population.plotFitnessEvolution();
+
+    // MGAProblem mga = MGAProblem(population.population.at(0)); //FIXME: NOT SURE THIS WORKS RIGHT! SHOULD BE CHECKED!
+    // mga.compute();
+    // mga.print();
+    // mga.plot();
+
+    // MGAProblem mga_real = MGAProblem();
+    // mga_real.add_planet(EARTH, 2443391);
+    // mga_real.add_planet(JUPITER, 2444009);
+    // mga_real.add_planet(SATURN, 2444555);
+    // mga_real.compute();
+    // mga_real.print();
+    // mga_real.plot();
     
 }

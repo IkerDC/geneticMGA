@@ -58,7 +58,7 @@ private:
     void setGene(std::string gene, int at);
 
 public:
-    std::vector<int> flyTimes;          // Chromosome (each variable is a gene).
+    std::vector<float> flyTimes;          // Chromosome (each variable is a gene).
     ProblemDefinition* problem;         // Problem reference (planets reference to operate are in there).
     float fitness;                      // Fitness of the individual.
     float cost;                         // Total cost of the individual based on the cost function.

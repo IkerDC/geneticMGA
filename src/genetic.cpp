@@ -39,7 +39,7 @@ std::string Individual::getChromosome() const{
      */
     std::string chromo;
     for(const auto& t: this->flyTimes){
-        chromo.append(int2bitStr(t));
+        chromo.append(time2bitStr(t));
     }
     return chromo;
 }
@@ -51,7 +51,7 @@ std::string Individual::getGene(int at) const{
     if(at >= this->flyTimes.size() || at < 0){
         throw "Gene position out of range";
     }
-    return int2bitStr(this->flyTimes.at(at));
+    return time2bitStr(this->flyTimes.at(at));
 }
 
 void Individual::setChromosome(std::string chromo){
@@ -70,7 +70,7 @@ void Individual::setGene(std::string gene, int at){
     if(at >= this->flyTimes.size() || at < 0){
         throw "Gene position out of range";
     }
-    int new_time = bitStr2int(gene);
+    int new_time = bitStr2Time(gene);
     new_time = (new_time >= this->problem->timeWindows.at(at).first) ? new_time: this->problem->timeWindows.at(at).first;
     new_time = (new_time <= this->problem->timeWindows.at(at).second) ? new_time : this->problem->timeWindows.at(at).second;
     this->flyTimes.at(at) = new_time;
@@ -93,8 +93,8 @@ void Individual::mate(const Individual& partner, int crossType){
     else if(crossType == CROSS_SINGLE_GENE){
         // Select a random Gene. Do CROSS_UNIFORM only on that gene.
         const int r_gene = rand() % this->flyTimes.size();
-        std::string p1_g = int2bitStr(this->flyTimes.at(r_gene));
-        std::string p2_g = int2bitStr(partner.flyTimes.at(r_gene));
+        std::string p1_g = time2bitStr(this->flyTimes.at(r_gene));
+        std::string p2_g = time2bitStr(partner.flyTimes.at(r_gene));
         std::string child_g = uniformBitstrCross(p1_g, p2_g);
 
         this->setGene(child_g, r_gene);
@@ -132,7 +132,7 @@ void Individual::mate(const Individual& partner, int crossType){
         float fit_w = (this->fitness / (this->fitness + partner.fitness)); 
         int sign = (this->flyTimes.at(r_gene) > partner.flyTimes.at(r_gene))? -1 : 1;
         float centroid_t = this->flyTimes.at(r_gene) + sign * std::fabs(this->flyTimes.at(r_gene) - partner.flyTimes.at(r_gene))*fit_w; 
-        std::string chlild_t = int2bitStr(centroid_t);
+        std::string chlild_t = time2bitStr(centroid_t);
         this->setGene(chlild_t, r_gene);
 
     }
@@ -197,7 +197,10 @@ void Individual::evaluate(){
         // Cost update if departure too.
         // std::cout << "------------------------------------------" << std::endl;
         if(i == 0){
-            this->updateDepartureCost(norm(v_dep1));
+            // Departure is speed must be considered at infinity, accouting for the speed of earth, automaticlly given to the prove.
+            double v_dep_at_infi[3];
+            minus2(v_dep1, v1, v_dep_at_infi);
+            this->updateDepartureCost(norm(v_dep_at_infi));
         }
 
         // Cost update

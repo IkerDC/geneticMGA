@@ -6,8 +6,12 @@
 #include <ctime>
 #include <bitset>
 #include "astro.h"
+#include <iostream>
 
-#define MAX_BIT_SIZE 11  // 2048 (max time per leg ~ 11 years).
+
+#define MAX_BIT_SIZE 11             // 2048 (max time per leg ~ 11 years).
+#define MAX_FRACTIONAL_BIT_SIZE 3   //8 :: 1/8 = 0.125 of resolution for times
+// Time value = [MAX_BIT_SIZE],[MAX_DECIMAL_BITS] 
 
 void minus2(const double* v1, const double* v2, double* out);
 
@@ -37,9 +41,9 @@ float rand_d();
 
 int rand_rng(int min, int max);
 
-std::string int2bitStr(const int x);
+std::string time2bitStr(const float x);
 
-int bitStr2int(const std::string x);
+float bitStr2Time(const std::string x);
 
 std::string uniformBitstrCross(const std::string s1, const std::string s2);
 

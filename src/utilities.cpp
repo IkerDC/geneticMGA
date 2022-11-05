@@ -142,12 +142,17 @@ int rand_rng(int min, int max){
     return min + (std::rand() % static_cast<int>(max - min + 1));
 }
 
-std::string int2bitStr(const int x) {
-    return std::bitset<MAX_BIT_SIZE>(x).to_string();
+std::string time2bitStr(const float x) {
+    int dec = int(x);
+    int fract = int((x - dec)*std::pow(10, MAX_FRACTIONAL_BIT_SIZE)); // 0.46571 -> 465 if MAX_..._SIZE = 3.
+    fract = std::round(fract/(1000/std::pow(2,MAX_FRACTIONAL_BIT_SIZE))); // above 0.9375 -> overflow to 0. No that relevant, allowed.
+    return std::bitset<MAX_BIT_SIZE>((int)x).to_string() + std::bitset<MAX_FRACTIONAL_BIT_SIZE>(fract).to_string();
 }
 
-int bitStr2int(const std::string x) {
-    return std::stoi(x, nullptr, 2);
+float bitStr2Time(const std::string x) {
+    float numb = std::stoi(x.substr(0, MAX_BIT_SIZE), nullptr, 2);
+    float decimal = std::stoi(x.substr(MAX_BIT_SIZE, MAX_FRACTIONAL_BIT_SIZE), nullptr, 2)/std::pow(2,MAX_FRACTIONAL_BIT_SIZE); 
+    return numb+decimal;
 }
 
 std::string uniformBitstrCross(const std::string s1, const std::string s2){
