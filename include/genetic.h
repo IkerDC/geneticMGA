@@ -39,14 +39,14 @@ struct GenOperators{
 
 class ProblemDefinition {
 public:
-    int departure;
+    float departure;
     std::vector<Planet> planets;
-    std::vector<std::pair<int, int>> timeWindows; //{Td(min, max), T1(min,max), T2(min, max), ... }
+    std::vector<std::pair<float, float>> timeWindows; //{Td(min, max), T1(min,max), T2(min, max), ... }
 
-    ProblemDefinition(const int _dep);
+    ProblemDefinition(const float _dep);
     ~ProblemDefinition();
 
-    void add_planet(int _p, int min, int max);
+    void add_planet(int _p, float min, float max);
 };
 
 
@@ -80,6 +80,16 @@ public:
     // Used to facilitate sorting of individuals.
     bool operator< (const Individual &other) const {
         return fitness < other.fitness;
+    }
+
+    bool operator== (const Individual &other) const {
+        // All have the same flight times => They are the same.
+        for(unsigned int i =0; i < this->flyTimes.size(); i++){
+            if(this->flyTimes.at(i) != other.flyTimes.at(i)){
+                return false;
+            }
+        }
+        return true;
     }
 };
 
