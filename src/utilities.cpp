@@ -144,8 +144,8 @@ int rand_rng(int min, int max){
 
 std::string time2bitStr(const float x) {
     int dec = int(x);
-    int fract = int((x - dec)*std::pow(10, MAX_FRACTIONAL_BIT_SIZE)); // 0.46571 -> 465 if MAX_..._SIZE = 3.
-    fract = std::round(fract/(1000/std::pow(2,MAX_FRACTIONAL_BIT_SIZE))); // above 0.9375 -> overflow to 0. No that relevant, allowed.
+    int fract = int((x - dec) * std::pow(10, MAX_FRACTIONAL_BIT_SIZE)); // 0.46571 -> 465 if MAX_..._SIZE = 3.
+    fract = std::round(fract / (std::pow(10, MAX_FRACTIONAL_BIT_SIZE) / std::pow(2,MAX_FRACTIONAL_BIT_SIZE))); // above 0.9375 -> overflow to 0. No that relevant, allowed.
     return std::bitset<MAX_BIT_SIZE>((int)x).to_string() + std::bitset<MAX_FRACTIONAL_BIT_SIZE>(fract).to_string();
 }
 
