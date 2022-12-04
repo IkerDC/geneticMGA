@@ -49,7 +49,7 @@ int main(int argc, char *argv[]){
     population.runGeneration();
     //population.plotFitnessEvolution();
 
-    MGAProblem mga = MGAProblem(population.population.at(0)); //FIXME: NOT SURE THIS WORKS RIGHT! SHOULD BE CHECKED!
+    MGAProblem mga = MGAProblem(population.population.at(0));
     mga.compute();
     mga.print();
     //mga.plot();

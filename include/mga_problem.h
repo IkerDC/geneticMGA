@@ -23,7 +23,7 @@ public:
     std::vector<float> times;
     
     MGAProblem();
-    MGAProblem(const Individual& ind);
+    MGAProblem(const Individual ind);
     ~MGAProblem();
 
     void add_planet(const int planet, float at);

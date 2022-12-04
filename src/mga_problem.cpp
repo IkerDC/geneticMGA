@@ -5,11 +5,11 @@ MGAProblem::MGAProblem(){
     
 }
 
-MGAProblem::MGAProblem(const Individual& ind){
+MGAProblem::MGAProblem(const Individual ind){
     /**
      * @brief Constructor out of an individual, to better anaylze it.
      */
-    float increase = (float)ind.problem->departure; // Init at start of departure window.
+    float increase = ind.problem->departure; // Init at start of departure window.
     for(unsigned int i = 0; i < ind.problem->planets.size(); i++){
         this->planets.push_back(ind.problem->planets.at(i));
         this->times.push_back((float)(ind.flyTimes.at(i) + increase)); //TODO: Rev this works
