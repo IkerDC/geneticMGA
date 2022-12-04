@@ -52,7 +52,7 @@ int main(int argc, char *argv[]){
     MGAProblem mga = MGAProblem(population.population.at(0)); //FIXME: NOT SURE THIS WORKS RIGHT! SHOULD BE CHECKED!
     mga.compute();
     mga.print();
-    mga.plot();
+    //mga.plot();
 
     std::cout << population.population.at(0).flyTimes.at(0) << std::endl;
     std::cout << population.population.at(0).flyTimes.at(1) << std::endl;
