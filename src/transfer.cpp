@@ -21,6 +21,7 @@ void Transfer::compute_transfer(float T){
     /**
      * @brief Computes the transfer between both planets in the class.
      */
+    std::cout << this->p1->r_eph[0];
     orbit::lambert(this->p1->r_eph, this->p2->r_eph, T, MU_SUN, this->v_dep, this->v_arr);
 }
 

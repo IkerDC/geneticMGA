@@ -34,16 +34,11 @@ def visualize(planets, transfers):
     for p in planets:
         p.plot(ax)
 
-    v = list()
     for t in transfers:
         t.plot(ax)
-        v.extend(t.traj_v)
 
     # SUN
     ax.scatter(0, 0, 0, s=50, marker='o', color='yellow', edgecolor='darkorange')
-    plt.show()
-
-    plt.plot(v)
     plt.show()
 
 

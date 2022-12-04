@@ -6,7 +6,7 @@
 int main(int argc, char *argv[]){
 
     std::srand(std::time(nullptr));
-    //Voyager 
+    // //Voyager 
     // float t1 = 2443389.5;
     // float t2 = 2443936.5;
     // float t3 = 2444554.5;
@@ -52,11 +52,11 @@ int main(int argc, char *argv[]){
     MGAProblem mga = MGAProblem(population.population.at(0));
     mga.compute();
     mga.print();
-    //mga.plot();
+    mga.plot();
 
-    std::cout << population.population.at(0).flyTimes.at(0) << std::endl;
-    std::cout << population.population.at(0).flyTimes.at(1) << std::endl;
-    std::cout << population.population.at(0).flyTimes.at(2) << std::endl;
+    // std::cout << population.population.at(0).flyTimes.at(0) << std::endl;
+    // std::cout << population.population.at(0).flyTimes.at(1) << std::endl;
+    // std::cout << population.population.at(0).flyTimes.at(2) << std::endl;
 
     // MGAProblem mga_real = MGAProblem();
     // mga_real.add_planet(EARTH, 2443391);
