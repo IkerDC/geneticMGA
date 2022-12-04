@@ -1,12 +1,12 @@
 #include "genetic.h"
 
-ProblemDefinition::ProblemDefinition(const int _dep) : departure(_dep){
+ProblemDefinition::ProblemDefinition(const float _dep) : departure(_dep){
 }
 
 ProblemDefinition::~ProblemDefinition(){
 }
 
-void ProblemDefinition::add_planet(int _p, int min, int max){
+void ProblemDefinition::add_planet(int _p, float min, float max){
     
     this->planets.push_back(Planet(_p));
     if(min >= max){
@@ -51,6 +51,7 @@ std::string Individual::getGene(int at) const{
     if(at >= this->flyTimes.size() || at < 0){
         throw "Gene position out of range";
     }
+    std::cout << this->flyTimes.at(at) << std::endl;
     return time2bitStr(this->flyTimes.at(at));
 }
 
@@ -59,7 +60,7 @@ void Individual::setChromosome(std::string chromo){
      * @brief Given a full chromosome, convert to flight times and update it.
      */
     for(unsigned int i = 0; i < this->flyTimes.size(); i++){
-        this->setGene(chromo.substr(i * MAX_BIT_SIZE, MAX_BIT_SIZE), i);
+        this->setGene(chromo.substr(i * (MAX_BIT_SIZE + MAX_FRACTIONAL_BIT_SIZE),(MAX_BIT_SIZE + MAX_FRACTIONAL_BIT_SIZE)), i);
     }   
 }
 
@@ -70,7 +71,7 @@ void Individual::setGene(std::string gene, int at){
     if(at >= this->flyTimes.size() || at < 0){
         throw "Gene position out of range";
     }
-    int new_time = bitStr2Time(gene);
+    float new_time = bitStr2Time(gene);
     new_time = (new_time >= this->problem->timeWindows.at(at).first) ? new_time: this->problem->timeWindows.at(at).first;
     new_time = (new_time <= this->problem->timeWindows.at(at).second) ? new_time : this->problem->timeWindows.at(at).second;
     this->flyTimes.at(at) = new_time;
@@ -160,7 +161,8 @@ void Individual::init(){
      * @brief Used to initizilize the individual to a random vector of times (within the windows).
      */
     for(const auto& window: this->problem->timeWindows){
-        int t = window.first + rand() % (window.second - window.first);
+        float t = window.first + rand() % (int)(window.second - window.first - 1);
+        t += rand_d(); // Add decimals to inrease resolution.
         this->flyTimes.push_back(t);
     }
 }

@@ -34,19 +34,27 @@ def visualize(planets, transfers):
     for p in planets:
         p.plot(ax)
 
+    v = list()
     for t in transfers:
         t.plot(ax)
+        v.extend(t.traj_v)
 
     # SUN
     ax.scatter(0, 0, 0, s=50, marker='o', color='yellow', edgecolor='darkorange')
     plt.show()
 
+    plt.plot(v)
+    plt.show()
+
 
 def main():
     """ Main call. All the file parsing and plotting"""
-
-    with open('visuals/visualize.json', 'rb') as f:
-        visual_js = json.load(f)
+    try:
+        with open('visuals/visualize.json', 'rb') as f:
+            visual_js = json.load(f)
+    except FileNotFoundError:
+        with open('visualize_aux.json', 'rb') as f:
+            visual_js = json.load(f)
 
     planets, transfers = load(visual_js)
     visualize(planets, transfers)
