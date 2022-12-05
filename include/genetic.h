@@ -14,8 +14,8 @@
 #include "orbital_mechanics.h"
 #include "numeric"
 
-#define N_POPULATION    300
-#define GEN_LIMIT  250
+#define N_POPULATION    2500
+#define GEN_LIMIT  50
 
 #define SELECTION_ROULETTE  0
 #define SELECTION_TOURNAMENT    1
@@ -53,7 +53,7 @@ public:
 class Individual {
 private:
     void updateDepartureCost(double dV);
-    void updateCost(const Planet& planet, double dV, double delta, double peri);
+    void updateCost(const Planet& planet, double dV, double delta, double peri, double vin);
     void setChromosome(std::string chromo);
     void setGene(std::string gene, int at);
 

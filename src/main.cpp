@@ -2,7 +2,6 @@
 #include "mga_problem.h"
 #include "genetic.h"
 
-
 int main(int argc, char *argv[]){
 
     std::srand(std::time(nullptr));
@@ -52,11 +51,13 @@ int main(int argc, char *argv[]){
     MGAProblem mga = MGAProblem(population.population.at(0));
     mga.compute();
     mga.print();
-    mga.plot();
 
-    // std::cout << population.population.at(0).flyTimes.at(0) << std::endl;
-    // std::cout << population.population.at(0).flyTimes.at(1) << std::endl;
-    // std::cout << population.population.at(0).flyTimes.at(2) << std::endl;
+    double inc = Tdep;
+    for(const auto& ft: population.population.at(0).flyTimes){ //NOTE: This is always the best??
+        inc += ft;
+        std::cout << "  - " << ft << ": " << jd_to_date(inc) << std::endl;
+    }
+    //mga.plot();
 
     // MGAProblem mga_real = MGAProblem();
     // mga_real.add_planet(EARTH, 2443391);

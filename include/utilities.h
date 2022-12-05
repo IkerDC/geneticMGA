@@ -5,8 +5,10 @@
 #include <string>
 #include <ctime>
 #include <bitset>
-#include "astro.h"
 #include <iostream>
+#include "curl/curl.h"
+#include "nlohmann/json.hpp"
+#include "astro.h"
 
 
 #define MAX_BIT_SIZE 11             // 2048 (max time per leg ~ 11 years).
@@ -47,5 +49,6 @@ float bitStr2Time(const std::string x);
 
 std::string uniformBitstrCross(const std::string s1, const std::string s2);
 
+std::string jd_to_date(float jd);
 
 #endif //UTILITIES_H

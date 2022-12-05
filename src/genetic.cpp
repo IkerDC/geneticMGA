@@ -51,7 +51,7 @@ std::string Individual::getGene(int at) const{
     if(at >= this->flyTimes.size() || at < 0){
         throw "Gene position out of range";
     }
-    std::cout << this->flyTimes.at(at) << std::endl;
+    //std::cout << this->flyTimes.at(at) << std::endl;
     return time2bitStr(this->flyTimes.at(at));
 }
 
@@ -206,7 +206,7 @@ void Individual::evaluate(){
         }
 
         // Cost update
-        this->updateCost(this->problem->planets.at(i + 1), dV, delta, peri);
+        this->updateCost(this->problem->planets.at(i + 1), dV, delta, peri, norm(v_arr2));
 
 
         // std::cout << "  Turning angle: " << rad2deg(delta) << "º" << std::endl;
@@ -217,7 +217,7 @@ void Individual::evaluate(){
 }
 
 
-void Individual::updateCost(const Planet& planet, double dV, double delta, double peri){
+void Individual::updateCost(const Planet& planet, double dV, double delta, double peri, double vin){
     /**
      * @brief Updates the current cost.
      * - Accumulates the delta V of the flyby.
@@ -227,9 +227,12 @@ void Individual::updateCost(const Planet& planet, double dV, double delta, doubl
     this->cost += dV;
 
     // Penalty function.
-    // this->cost += ; // Penalize low perigee radius.
-    // this->cost += ; // Penalize low velocities flybys (can lead to spacecraft planet capture).
-
+    this->cost += -2*std::log10(peri / (1.1 * planet.rad)); // Penalize low perigee radius.
+    double rsoi = std::pow((planet.mass / MASS_SUN), 2/5) * planet.sun_dist;
+    double E = ((vin * vin) / 2) - planet.mu/rsoi; // Penalize low velocities flybys (can lead to spacecraft planet capture).
+    if(E < 0){
+        this->cost += 1/vin;
+    }
 }
 
 void Individual::updateDepartureCost(double dV){
