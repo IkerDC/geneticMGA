@@ -51,4 +51,9 @@ std::string uniformBitstrCross(const std::string s1, const std::string s2);
 
 std::string jd_to_date(float jd);
 
+// Pagmo
+void Conversion(const double*, double*, double*, const double &);
+
+double Mean2Eccentric (const double &, const double &);
+
 #endif //UTILITIES_H

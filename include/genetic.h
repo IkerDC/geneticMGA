@@ -14,13 +14,13 @@
 #include "orbital_mechanics.h"
 #include "numeric"
 
-#define N_POPULATION    2500
+#define N_POPULATION    15000
 #define GEN_LIMIT  50
 
 #define SELECTION_ROULETTE  0
 #define SELECTION_TOURNAMENT    1
 
-#define TOURNAMENT_N    2
+#define TOURNAMENT_N    10
 
 #define CROSS_UNIFORM   0
 #define CROSS_SINGLE_GENE   1
@@ -60,8 +60,8 @@ private:
 public:
     std::vector<float> flyTimes;          // Chromosome (each variable is a gene).
     ProblemDefinition* problem;         // Problem reference (planets reference to operate are in there).
-    float fitness;                      // Fitness of the individual.
-    float cost;                         // Total cost of the individual based on the cost function.
+    double fitness;                      // Fitness of the individual.
+    double cost;                         // Total cost of the individual based on the cost function.
 
     Individual();
     Individual(ProblemDefinition* prob);

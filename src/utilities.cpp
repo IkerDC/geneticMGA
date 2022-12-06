@@ -208,3 +208,86 @@ std::string jd_to_date(float jd){
     nlohmann::json data = nlohmann::json::parse(response_string);
     return data["cd"].get<std::string>();
 }
+
+double Mean2Eccentric (const double &M, const double &e)
+{
+
+	static const double tolerance = 1e-13;
+	int n_of_it = 0; // Number of iterations
+	double Eccentric,Ecc_New;
+	double err = 1.0;
+
+
+
+
+    Eccentric = M + e* std::cos(M); // Initial guess
+    while ( (err > tolerance) && (n_of_it < 100))
+    {
+        Ecc_New = Eccentric - (Eccentric - e* std::sin(Eccentric) -M )/(1.0 - e * std::cos(Eccentric));
+        err = std::fabs(Eccentric - Ecc_New);
+        Eccentric = Ecc_New;
+        n_of_it++;
+    }
+	return Eccentric;
+}
+
+
+
+void Conversion (const double *E,
+				 double *pos,
+				 double *vel,
+				 const double &mu)
+{
+	double a,e,i,omg,omp,theta;
+	double b,n;
+	double X_per[3],X_dotper[3];
+	double R[3][3];
+
+	a = E[0];
+	e = E[1];
+	i = E[2];
+	omg = E[3];
+	omp = E[4];
+	theta = E[5];
+
+	b = a * std::sqrt (1 - e*e);
+	n = std::sqrt (mu/std::pow(a,3));
+
+	const double sin_theta = std::sin(theta);
+	const double cos_theta = std::cos(theta);
+
+	X_per[0] = a * (cos_theta - e);
+	X_per[1] = b * sin_theta;
+
+	X_dotper[0] = -(a * n * sin_theta)/(1 - e * cos_theta);
+	X_dotper[1] = (b * n * cos_theta)/(1 - e * cos_theta);
+
+	const double cosomg = std::cos(omg);
+	const double cosomp = std::cos(omp);
+	const double sinomg = std::sin(omg);
+	const double sinomp = std::sin(omp);
+	const double cosi = std::cos(i);
+	const double sini = std::sin(i);
+
+	R[0][0] =  cosomg*cosomp-sinomg*sinomp*cosi;
+	R[0][1] =  -cosomg*sinomp-sinomg*cosomp*cosi;
+
+	R[1][0] =  sinomg*cosomp+cosomg*sinomp*cosi;
+	R[1][1] =  -sinomg*sinomp+cosomg*cosomp*cosi;
+
+	R[2][0] =  sinomp*sini;
+	R[2][1] =  cosomp*sini;
+
+	// evaluate position and velocity
+	for (int i = 0;i < 3;i++)
+	{
+		pos[i] = 0;
+		vel[i] = 0;
+		for (int j = 0;j < 2;j++)
+		{
+				pos[i] += R[i][j] * X_per[j];
+				vel[i] += R[i][j] * X_dotper[j];
+		}
+	}
+	return;
+}

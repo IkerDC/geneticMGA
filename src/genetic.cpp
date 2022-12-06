@@ -148,7 +148,6 @@ void Individual::createMutation(){
      * @brief Generates mutation in the individual.
      */
     std::string chromo = this->getChromosome();
-    
     int mutate_at = rand_rng(0, chromo.size() - 1);
     chromo.at(mutate_at) = (chromo.at(mutate_at) == '0')? '1' : '0';
 
@@ -268,6 +267,7 @@ void Population::inception(){
     for(auto& ind: this->population){
         ind.init();
     }
+    std::srand(std::time(nullptr));
 }
 
 void Population::sortPopulation(){
@@ -293,8 +293,6 @@ void Population::selection(){
      * @brief Selects the individuals that will undergo reporduction/crossover.
      */
     if(this->geParameters.selectionType == SELECTION_ROULETTE){
-        // Roulette Operattor - TODO SET AS AND ENUM AND TRY FURTHER METHODS
-        
         float sum_adjusted_ft = 0.f;
         float roulette[N_POPULATION];
         
@@ -302,14 +300,13 @@ void Population::selection(){
             sum_adjusted_ft += 1/(1 + this->population.at(i).fitness);
         }
         // Roulette wheel
-        //std::cout << std::endl << "Fitness: ";
         for(unsigned int j = 0; j < N_POPULATION; j++){
             roulette[j] = (1/(1 + this->population.at(j).fitness)) / (sum_adjusted_ft);
-            //std::cout << roulette[j] << ", ";
+            //std::cout << this->population.at(j).fitness << std::endl;
         }
-        //std::cout << std::endl;
-
+        std::cout << "----------------------"<< std::endl;
         // Do the selection
+        float mean = 0;
         for(unsigned int k = 0; k < N_POPULATION - this->geParameters.elitism_n; k++){
             float r = rand_d();
             float curr = roulette[0];
@@ -318,23 +315,26 @@ void Population::selection(){
                 idx++;
                 curr += roulette[idx]; 
             }
+            mean += idx;
             this->newPopulation.push_back(this->population.at(idx));
         }
+        std::cout << "Of index took: " << mean / N_POPULATION - this->geParameters.elitism_n << std::endl; 
         
     }
     else if(this->geParameters.selectionType == SELECTION_TOURNAMENT){
         // Tournament method
-        for(unsigned int i = 1; i < N_POPULATION - this->geParameters.elitism_n; i++){
+        float mean = 0.f;
+        for(unsigned int i = 0; i < N_POPULATION - this->geParameters.elitism_n; i++){
 
             int rnd_idx[TOURNAMENT_N];
-            for(int r; r < TOURNAMENT_N; r++){
+            for(int r = 0; r < TOURNAMENT_N; r++){
                 rnd_idx[r] = rand_rng(this->geParameters.elitism_n, N_POPULATION - this->geParameters.elitism_n);
             }
             
-            float best_fit = -1.f;
+            float best_fit = 1e20;
             int fitest_idx = -1;
             for(const auto& idx: rnd_idx){
-                if(this->population.at(idx).fitness > best_fit){
+                if(this->population.at(idx).fitness < best_fit){
                     fitest_idx = idx;
                     best_fit = this->population.at(idx).fitness;
                 }
@@ -342,9 +342,11 @@ void Population::selection(){
             if(fitest_idx == -1){ // sanity check
                 throw "Something went wrong during the tournament selection. No fittest than -1.f indivduales where found!";
             }
-
+            mean += fitest_idx;
             this->newPopulation.push_back(this->population.at(fitest_idx)); // selected!
         }
+        //std::cout << "Of index took: " << mean / N_POPULATION - this->geParameters.elitism_n << std::endl; 
+
     }
     else{
         throw "Unknow selection method";
@@ -381,9 +383,15 @@ void Population::mutate(){
     /**
      * @brief Mutate the generation.
      */
-    for(auto ind: this->population){
+    // for(auto ind: this->population){
+    //     if(rand_d() <= this->geParameters.mutationProb){ // if probability of mutation
+    //         ind.createMutation();
+
+    //     }
+    // }
+    for(unsigned int i = 0; i < N_POPULATION -  this->geParameters.elitism_n; i++){
         if(rand_d() <= this->geParameters.mutationProb){ // if probability of mutation
-            ind.createMutation();
+            this->newPopulation.at(i).createMutation();
         }
     }
 }

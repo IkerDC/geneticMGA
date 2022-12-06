@@ -3,8 +3,8 @@
 #include "genetic.h"
 
 int main(int argc, char *argv[]){
-
     std::srand(std::time(nullptr));
+    //std::srand(std::time(nullptr));
     // //Voyager 
     // float t1 = 2443389.5;
     // float t2 = 2443936.5;
@@ -25,8 +25,8 @@ int main(int argc, char *argv[]){
     
     // Genetic operation parameters setting.
     GenOperators genOp;
-    genOp.elitism_n = 2;
-    genOp.selectionType = SELECTION_ROULETTE;
+    genOp.elitism_n = 1;
+    genOp.selectionType = SELECTION_TOURNAMENT;
     genOp.crossOverType = CROSS_DOUBLE_POINT;
     genOp.crossOverProb = 0.9;
     genOp.mutationProb = 0.2;
@@ -55,7 +55,8 @@ int main(int argc, char *argv[]){
     double inc = Tdep;
     for(const auto& ft: population.population.at(0).flyTimes){ //NOTE: This is always the best??
         inc += ft;
-        std::cout << "  - " << ft << ": " << jd_to_date(inc) << std::endl;
+        //std::cout << "  - " << ft << ": " << jd_to_date(inc) << std::endl;
+        std::cout << ft << std::endl;
     }
     //mga.plot();
 
