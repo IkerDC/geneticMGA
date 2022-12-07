@@ -16,6 +16,10 @@ void ProblemDefinition::add_planet(int _p, float min, float max){
     this->timeWindows.push_back(std::make_pair(min, max));
 }
 
+void ProblemDefinition::set_max_time(float t){
+    this->time_max = t;
+}
+
 
 /*
 ====================================================================================================================
@@ -27,6 +31,7 @@ Individual::Individual(ProblemDefinition* prob){
     this->problem = prob;
     this->cost = 0.f;
     this->fitness = 0.f;
+    this->totalDV = 0.f;
 }
 
 Individual::~Individual(){
@@ -182,8 +187,8 @@ void Individual::evaluate(){
         double r1[3], v1[3], r2[3], v2[3], r3[3], v3[3];
         double T1 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + i + 1, 0.0); // Times are in format [Departure T, +ΔT1, +ΔT2,..]
         double T2 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 1) + 1, 0.0);
-        double T3 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 2) + 1, 0.0); 
-        orbit::ephemeris(this->problem->planets.at(i).prm, T1, r1, v1); // segfault here
+        double T3 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 2) + 1, 0.0);
+        orbit::ephemeris(this->problem->planets.at(i).prm, T1, r1, v1);
         orbit::ephemeris(this->problem->planets.at(i + 1).prm, T2, r2, v2);
         orbit::ephemeris(this->problem->planets.at(i + 2).prm, T3, r3, v3);
 
@@ -202,16 +207,19 @@ void Individual::evaluate(){
             double v_dep_at_infi[3];
             minus2(v_dep1, v1, v_dep_at_infi);
             this->updateDepartureCost(norm(v_dep_at_infi));
+            this->totalDV += norm(v_dep_at_infi);
         }
 
         // Cost update
         this->updateCost(this->problem->planets.at(i + 1), dV, delta, peri, norm(v_arr2));
+        this->totalDV += dV;
+    }
 
 
-        // std::cout << "  Turning angle: " << rad2deg(delta) << "º" << std::endl;
-        // std::cout << "  Periapsis rad: " << peri << "m" << std::endl;
-        // std::cout << "  Fitness      : " << this->cost << std::endl;  
-        // std::cout << "  Total dV     : " << dV << "m/s" << std::endl;
+    // Time penalty cost if the time is to big.
+    float total_time = std::accumulate(this->flyTimes.begin(), this->flyTimes.end(), 0.0);
+    if( total_time > this->problem->time_max){
+        this->cost += K_TIME_PENALTY * (total_time - this->problem->time_max); 
     }
 }
 
@@ -227,6 +235,7 @@ void Individual::updateCost(const Planet& planet, double dV, double delta, doubl
 
     // Penalty function.
     this->cost += -2*std::log10(peri / (1.1 * planet.rad)); // Penalize low perigee radius.
+
     double rsoi = std::pow((planet.mass / MASS_SUN), 2/5) * planet.sun_dist;
     double E = ((vin * vin) / 2) - planet.mu/rsoi; // Penalize low velocities flybys (can lead to spacecraft planet capture).
     if(E < 0){
@@ -266,8 +275,8 @@ void Population::inception(){
      */
     for(auto& ind: this->population){
         ind.init();
+        ind.evaluate();
     }
-    std::srand(std::time(nullptr));
 }
 
 void Population::sortPopulation(){
@@ -419,6 +428,7 @@ void Population::evolveNewGeneration(){
     for(auto& ind: this->population){
         ind.cost = 0;
         ind.fitness = 0;
+        ind.totalDV = 0;
         ind.evaluate();
         ind.fitness = ind.cost; // delerte me, do somewhere else (TODO:);
     }
@@ -433,7 +443,6 @@ void Population::runGeneration(){
     this->newPopulation.clear();
 
     while (g < GEN_LIMIT){
-        this->evolveNewGeneration();
         this->sortPopulation();
         
         this->elitism();
@@ -446,6 +455,9 @@ void Population::runGeneration(){
 
         // Record evolution of the fitness
         this->fitnessEvolution.push_back(this->population.at(0).fitness); 
+        
+        //Evolve
+        this->evolveNewGeneration();
         g++;
     }
 

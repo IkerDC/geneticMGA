@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <numeric>
 #include <random>
 #include <bitset>
 #include <bits/stdc++.h> // for std::sort
@@ -28,6 +29,8 @@
 #define CROSS_DOUBLE_POINT  3
 #define CROSS_PERSONALIZED  4
 
+#define K_TIME_PENALTY 10
+
 struct GenOperators{
     int elitism_n;
     int selectionType;
@@ -42,11 +45,13 @@ public:
     float departure;
     std::vector<Planet> planets;
     std::vector<std::pair<float, float>> timeWindows; //{Td(min, max), T1(min,max), T2(min, max), ... }
+    float time_max = 7305; //20 years
 
     ProblemDefinition(const float _dep);
     ~ProblemDefinition();
 
     void add_planet(int _p, float min, float max);
+    void set_max_time(float t);
 };
 
 
@@ -62,6 +67,7 @@ public:
     ProblemDefinition* problem;         // Problem reference (planets reference to operate are in there).
     double fitness;                      // Fitness of the individual.
     double cost;                         // Total cost of the individual based on the cost function.
+    double totalDV = 0.0;               // Total amount of dV.
 
     Individual();
     Individual(ProblemDefinition* prob);

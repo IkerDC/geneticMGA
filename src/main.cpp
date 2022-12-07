@@ -25,7 +25,7 @@ int main(int argc, char *argv[]){
     
     // Genetic operation parameters setting.
     GenOperators genOp;
-    genOp.elitism_n = 1;
+    genOp.elitism_n = 5;
     genOp.selectionType = SELECTION_TOURNAMENT;
     genOp.crossOverType = CROSS_DOUBLE_POINT;
     genOp.crossOverProb = 0.9;
@@ -41,29 +41,37 @@ int main(int argc, char *argv[]){
     prob.add_planet(EARTH, dep_window.first, dep_window.second);
     prob.add_planet(JUPITER, t1_window.first, t1_window.second);
     prob.add_planet(SATURN, t2_window.first, t2_window.second);
+    //prob.set_max_time(4.5*365.25); 
 
     // Population and genetic algorithm
-    Population population = Population(genOp, &prob);
-    population.inception();
-    population.runGeneration();
-    //population.plotFitnessEvolution();
+    for(unsigned int i = 0; i < 10; i++)
+    {
+        Population population = Population(genOp, &prob);
+        population.inception();
+        population.runGeneration();
+        //population.plotFitnessEvolution();
 
-    MGAProblem mga = MGAProblem(population.population.at(0));
-    mga.compute();
-    mga.print();
+        MGAProblem mga = MGAProblem(population.population.at(0));
+        mga.compute();
+        //mga.print();
+        //population.population.at(0).evaluate();
 
-    double inc = Tdep;
-    for(const auto& ft: population.population.at(0).flyTimes){ //NOTE: This is always the best??
-        inc += ft;
-        //std::cout << "  - " << ft << ": " << jd_to_date(inc) << std::endl;
-        std::cout << ft << std::endl;
+        double inc = Tdep;
+        for(const auto& ft: population.population.at(0).flyTimes){ //NOTE: This is always the best??
+            inc += ft;
+            //std::cout << "  - " << ft << ": " << jd_to_date(inc) << std::endl;
+            std::cout << ft << ", ";
+        }
+        std::cout << "   DV:" <<population.population.at(0).totalDV << " - fitness: "<<population.population.at(0).fitness << std::endl;
     }
+
+
     //mga.plot();
 
     // MGAProblem mga_real = MGAProblem();
-    // mga_real.add_planet(EARTH, 2443391);
-    // mga_real.add_planet(JUPITER, 2444009);
-    // mga_real.add_planet(SATURN, 2444555);
+    // mga_real.add_planet(EARTH, 2443390.1);
+    // mga_real.add_planet(JUPITER, 2443936.5);
+    // mga_real.add_planet(SATURN, 2444555.026);
     // mga_real.compute();
     // mga_real.print();
     // mga_real.plot();
