@@ -7,6 +7,7 @@
 #include <numeric>
 #include <random>
 #include <bitset>
+#include <thread>
 #include <bits/stdc++.h> // for std::sort
 
 #include "planet.h"
@@ -15,8 +16,8 @@
 #include "orbital_mechanics.h"
 #include "numeric"
 
-#define N_POPULATION    15000
-#define GEN_LIMIT  50
+#define N_POPULATION    50000
+#define GEN_LIMIT  500
 
 #define SELECTION_ROULETTE  0
 #define SELECTION_TOURNAMENT    1
@@ -104,6 +105,8 @@ class Population{
 private:
     void sortPopulation();
     std::vector<float> fitnessEvolution;
+
+    void evolveNewGenerationThreaded(int indx_start, int indx_end);
 
 public:
     std::vector<Individual> population;

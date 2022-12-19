@@ -234,7 +234,10 @@ void Individual::updateCost(const Planet& planet, double dV, double delta, doubl
     this->cost += dV;
 
     // Penalty function.
-    this->cost += -2*std::log10(peri / (1.1 * planet.rad)); // Penalize low perigee radius.
+    //this->cost += -2*std::log10(peri / (1.1 * planet.rad)); // Penalize low perigee radius. //FIXME: This is BS
+    if(peri < 1.1 * planet.rad){
+        this->cost += 1e10;
+    }
 
     double rsoi = std::pow((planet.mass / MASS_SUN), 2/5) * planet.sun_dist;
     double E = ((vin * vin) / 2) - planet.mu/rsoi; // Penalize low velocities flybys (can lead to spacecraft planet capture).
@@ -425,12 +428,48 @@ void Population::evolveNewGeneration(){
     /**
      * @brief Evaluates each individual
      */
-    for(auto& ind: this->population){
-        ind.cost = 0;
-        ind.fitness = 0;
-        ind.totalDV = 0;
-        ind.evaluate();
-        ind.fitness = ind.cost; // delerte me, do somewhere else (TODO:);
+    // for(auto& ind: this->population){
+    //     ind.cost = 0;
+    //     ind.fitness = 0;
+    //     ind.totalDV = 0;
+    //     ind.evaluate();
+    //     ind.fitness = ind.cost; // delerte me, do somewhere else (TODO:);
+    // }
+    int int_size = this->population.size() / 10;
+    std::thread t1(&Population::evolveNewGenerationThreaded, this,  int_size * 0, int_size * 1);
+    std::thread t2(&Population::evolveNewGenerationThreaded, this, int_size * 1, int_size * 2);
+    std::thread t3(&Population::evolveNewGenerationThreaded, this,  int_size * 2, int_size * 3);
+    std::thread t4(&Population::evolveNewGenerationThreaded, this, int_size * 3, int_size * 4);
+    std::thread t5(&Population::evolveNewGenerationThreaded, this,  int_size * 4, int_size * 1);
+    std::thread t6(&Population::evolveNewGenerationThreaded, this, int_size * 5, int_size * 6);
+    std::thread t7(&Population::evolveNewGenerationThreaded, this,  int_size * 6, int_size * 7);
+    std::thread t8(&Population::evolveNewGenerationThreaded, this, int_size * 7, int_size * 8);
+    std::thread t9(&Population::evolveNewGenerationThreaded, this,  int_size * 8, int_size * 9);
+    std::thread t10(&Population::evolveNewGenerationThreaded, this, int_size * 9, int_size * 10);
+    t1.join();
+    t2.join();
+    t3.join();
+    t4.join();
+    t5.join();
+    t6.join();
+    t7.join();
+    t8.join();
+    t9.join();
+    t10.join();
+    
+
+}
+
+void Population::evolveNewGenerationThreaded(int indx_start, int indx_end){
+    /**
+     * @brief Base evolution for multithreaded evolution
+     */
+    for(unsigned int i = indx_start; i < indx_end; i++){
+        this->population.at(i).cost = 0;
+        this->population.at(i).fitness = 0;
+        this->population.at(i).totalDV = 0;
+        this->population.at(i).evaluate();
+        this->population.at(i).fitness = this->population.at(i).cost; // delerte me, do somewhere else (TODO:);
     }
 }
 

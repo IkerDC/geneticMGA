@@ -9,7 +9,7 @@
 
 TARGET := mga
 CXX := g++
-CXXFLAGS := -Wall -std=c++17 -g
+CXXFLAGS := -Wall -std=c++17 -g -pthread
 
 SOURCES := $(wildcard src/*.cpp)
 OBJECTS := $(patsubst src%,obj%, $(patsubst %.c,%.o, $(patsubst %.cpp,%.o,$(SOURCES))))

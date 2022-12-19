@@ -51,14 +51,14 @@ namespace planet_props{
         double sun_dist;
     };
 
-    static const Properties mercury = {2.2032e13, 2439.5, 0.33e24, 57.9e6};
-    static const Properties venus = {3.24859e14, 6052, 4.87e24, 108.2e6};
-    static const Properties earth = {3.986004418e14, 6378, 5.97e24, 149.6e6};
-    static const Properties mars = {4.282837e13, 3396, 0.642e24, 228.0e6};
-    static const Properties jupiter = {1.26686534e17, 71492, 1898e24, 778.5e6};
-    static const Properties saturn = {3.7931187e16, 60268, 568e24, 1432.0e6};
-    static const Properties uranus = {6.836529e15, 25559, 86.8e24, 2867.0e6};
-    static const Properties neptune = {5.793939e15, 24764, 102e24, 4515.0e6};
+    static const Properties mercury = {2.2032e13, 2439.5e3, 0.33e24, 57.9e9};
+    static const Properties venus = {3.24859e14, 6052e3, 4.87e24, 108.2e9};
+    static const Properties earth = {3.986004418e14, 6378e3, 5.97e24, 149.6e9};
+    static const Properties mars = {4.282837e13, 3396e3, 0.642e24, 228.0e9};
+    static const Properties jupiter = {1.26686534e17, 71492e3, 1898e24, 778.5e9};
+    static const Properties saturn = {3.7931187e16, 60268e3, 568e24, 1432.0e9};
+    static const Properties uranus = {6.836529e15, 25559e3, 86.8e24, 2867.0e9};
+    static const Properties neptune = {5.793939e15, 24764e3, 102e24, 4515.0e9};
 } // namespace planet_props
 
 struct orbitalParameters{

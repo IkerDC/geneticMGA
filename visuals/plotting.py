@@ -16,11 +16,12 @@ JD2000 = 2451544.50000
 
 
 class Planet:
-    def __init__(self, name: str, at, coordinates=None, color='gray'):
+    def __init__(self, name: str, at, coordinates=None, color='gray', orbit_color='gray'):
         self.name = name
         self.at = at
         self.coordinates = coordinates
         self.color = color
+        self.orbit_color = orbit_color
 
         if self.name not in ['mercury', 'venus', 'earth', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']:
             raise Exception(f"Unknown solar system planet named {self.name}")
@@ -37,7 +38,7 @@ class Planet:
         else:
             raise ValueError('invalid data type from "at" attribute, must be str, int or float.')
 
-    def plot(self, ax):
+    def plot(self, ax, ax2d=None):
         """Plot the planet's orbit and the location if the coordinates have been passed"""
         plnt = pk.planet.jpl_lp(self.name)
         T = plnt.compute_period(pk.epoch(self.at, julian_date_type="jd")) * SEC2DAY
@@ -53,12 +54,18 @@ class Planet:
             y[i] = r[1] / AU
             z[i] = r[2] / AU
 
-        ax.plot(x, y, z, label=self.name, color=self.color)
+        ax.plot(x, y, z, color=self.orbit_color)
+
+        if ax2d is not None:
+            ax2d.plot(x, y, color=self.orbit_color)
 
         # Plot also the planet location if needed
         if self.coordinates is not None:
             ax.scatter(self.coordinates[0]/AU, self.coordinates[1]/AU, self.coordinates[2]/AU,
-                       marker='o', alpha=0.8, color=self.color)
+                       marker='o', alpha=0.8, label=self.name, color=self.color)
+        if self.coordinates is not None and ax2d is not None:
+            ax2d.scatter(self.coordinates[0]/AU, self.coordinates[1]/AU, marker='o', alpha=0.8, label=self.name,
+                         color=self.color)
 
 
 class Transfer:
@@ -75,7 +82,7 @@ class Transfer:
     def solve_transfer(self):
         """Computes the transfer using the lagragian propagation. Stores the values where it corresponds"""
 
-    def plot(self, ax):
+    def plot(self, ax, ax2d = None):
         """Plot the transfer between the planet of origin and the next one."""
         x = np.zeros(N, )
         y = np.zeros(N, )
@@ -95,10 +102,6 @@ class Transfer:
 
         ax.plot(x, y, z, color=self.color)
 
-    def plot_animate(self, ax):
-        """Plots the trajectory in an animated way"""
-        pass
-    #TODO: In order for the visuales to work. We need to do everything at each timestamp, so at one ts you compute the
-    #TODO: planet position and also the probe position. Orbit is the only fixed thing. 
-
+        if ax2d is not None:
+            ax2d.plot(x, y, color=self.color)
 
