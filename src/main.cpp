@@ -6,7 +6,7 @@
 
 
 void voyager(GenOperators genOp){
-    float Tdep = 2443145.f;
+    float Tdep = 2443145.f; // 01-01-1977
     std::pair<float, float> dep_window = {0.f, 1095.f}; // NOTE: First value (min) should be 0 as it is the departure!
     std::pair<float, float> t1_window = {50.f, 2000.f};
     std::pair<float, float> t2_window = {50.f, 2000.f};
@@ -37,6 +37,40 @@ void voyager(GenOperators genOp){
         }
         std::cout << "   DV:" <<population.population.at(0).totalDV << " - fitness: "<<population.population.at(0).fitness << std::endl;
     }
+}
+
+
+void voyagerII(GenOperators genOp){
+    float Tdep = 2443145.f; //01-01-1977
+    std::pair<float, float> dep_window = {0.f, 1095.f};
+    std::pair<float, float> t1_window = {50.f, 2000.f};
+    std::pair<float, float> t2_window = {50.f, 2000.f};
+    std::pair<float, float> t3_window = {500.f, 2500.f};
+    std::pair<float, float> t4_window = {250.f, 2500.f};
+
+    ProblemDefinition prob = ProblemDefinition(Tdep);
+    prob.add_planet(EARTH, dep_window.first, dep_window.second);
+    prob.add_planet(JUPITER, t1_window.first, t1_window.second);
+    prob.add_planet(SATURN, t2_window.first, t2_window.second);
+    prob.add_planet(URANUS, t3_window.first, t3_window.second);
+    prob.add_planet(NEPTUNE, t4_window.first, t4_window.second);
+    //prob.set_max_time(4.5*365.25); 
+
+    Population population = Population(genOp, &prob);
+    population.inception();
+    population.runGeneration();
+
+    MGAProblem mga = MGAProblem(population.population.at(0));
+    mga.compute();
+    mga.print();
+    mga.plot();
+
+    double inc = Tdep;
+    for(const auto& ft: population.population.at(0).flyTimes){ //NOTE: This is always the best??
+        inc += ft;
+        std::cout << ft << ", ";
+    }
+    std::cout << "   DV:" <<population.population.at(0).totalDV << " - fitness: "<<population.population.at(0).fitness << std::endl;
 }
 
 
@@ -136,7 +170,7 @@ int main(int argc, char *argv[]){
 
     for(unsigned int i = 0; i < 5; i++){
         auto start = std::chrono::high_resolution_clock::now();
-        gallileo(genOp);
+        voyagerII(genOp);
         auto finish = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = finish - start;
         std::cout << "Elapsed time:  " << elapsed.count() << " s" << std::endl;

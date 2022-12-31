@@ -42,6 +42,9 @@ class Planet:
         """Plot the planet's orbit and the location if the coordinates have been passed"""
         plnt = pk.planet.jpl_lp(self.name)
         T = plnt.compute_period(pk.epoch(self.at, julian_date_type="jd")) * SEC2DAY
+        if self.at + T >= 2469807.5:  # Uranus and Neptune have really long periods above 2050 -> Out of range ephemeris
+            T = 2469807.5 - self.at - 1
+
         when = np.linspace(0, T, N)
 
         x = np.array([0.0] * N)
@@ -49,7 +52,7 @@ class Planet:
         z = np.array([0.0] * N)
 
         for i, day in enumerate(when):
-            r, v = plnt.eph(pk.epoch(self.at - JD2000 + day))
+            r, v = plnt.eph(pk.epoch(self.at + day, julian_date_type="jd"))
             x[i] = r[0] / AU
             y[i] = r[1] / AU
             z[i] = r[2] / AU
