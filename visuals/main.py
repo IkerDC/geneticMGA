@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+import numpy as np
+
 import plotting
 import json
 
@@ -12,7 +14,7 @@ def load(visual_js):
         raise ValueError(f'The number of transfers and planets does NOT add up.')
 
     for p in visual_js["Planets"]:
-        planets.append(plotting.Planet(p["Name"], p["At"], p["Coordinates"], p["Color"]))
+        planets.append(plotting.Planet(p["Name"], p["At"], p["Coordinates"], p["Color"])) #TODO: Repeat p["Color"] again to use the same color for the orbit
 
     for idx, t in enumerate(visual_js["Transfers"]):
         transfers.append(plotting.Transfer(planets[idx], planets[idx + 1], t["Velocity"], t["Color"]))
@@ -26,27 +28,51 @@ def load(visual_js):
 
 def visualize(planets, transfers):
     fig = plt.figure(figsize=(10, 8))
-    ax = plt.subplot(1, 1, 1, projection='3d')
-    ax.set_xlabel('X (AU)')
-    ax.set_ylabel('Y (AU)')
-    ax.set_zlabel('Z (AU)')
+    ax3d = plt.subplot(1, 1, 1, projection='3d')
+    ax3d.set_xlabel('X (AU)')
+    ax3d.set_ylabel('Y (AU)')
+    ax3d.set_zlabel('Z (AU)')
 
+    # #TODO: 2D plot, PASS AS ARGUMENT IN THE PLOT CALL!
+    # fig = plt.figure(figsize=(6, 6))
+    # ax2d = plt.subplot(1, 1, 1)
+    # ax2d.set_xlabel('X (AU)')
+    # ax2d.set_ylabel('Y (AU)')
+    # ax2d.scatter(0, 0, s=50, marker='o', color='yellow', edgecolor='darkorange')
+
+    v = list()
     for p in planets:
-        p.plot(ax)
+        p.plot(ax3d)
 
     for t in transfers:
-        t.plot(ax)
+        t.plot(ax3d)
+        v.extend(t.v_evolution)
+    x = np.linspace(planets[0].at, planets[-1].at, len(v))
 
     # SUN
-    ax.scatter(0, 0, 0, s=50, marker='o', color='yellow', edgecolor='darkorange')
+    ax3d.scatter(0, 0, 0, s=50, marker='o', color='yellow', edgecolor='darkorange')
+    #ax2d.legend()
+
+    # #FIXME: Speed plot
+    # fig = plt.figure(figsize=(10, 4))
+    # ax_v = plt.subplot(1, 1, 1)
+    # ax_v.set_title("Velocity evolution")
+    # ax_v.set_ylabel("Speed (m/s)")
+    # ax_v.set_xlabel("Time (JD)")
+    # ax_v.plot(x, v)
+
     plt.show()
+
 
 
 def main():
     """ Main call. All the file parsing and plotting"""
-
-    with open('visuals/visualize.json', 'rb') as f:
-        visual_js = json.load(f)
+    try:
+        with open('visuals/visualize.json', 'rb') as f:
+            visual_js = json.load(f)
+    except FileNotFoundError:
+        with open('visualize_aux.json', 'rb') as f:
+            visual_js = json.load(f)
 
     planets, transfers = load(visual_js)
     visualize(planets, transfers)

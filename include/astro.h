@@ -2,6 +2,7 @@
 #define ASTRO_H
 
 #define UA 149597870691.0
+#define MASS_SUN 1.98847e30
 #define DAY2SEC 86400.0
 #define MU_SUN 1.32712440018e+20
 #define CORRECTION 0.827363
@@ -39,17 +40,26 @@ namespace kepler_orbits
     static const float saturn_cy[6] = {-0.00125060, -0.00050991,  0.00193609, 1222.49362201, -0.41897216, -0.28867794};
     static const float uranus_cy[6] = {-0.00196176, -0.00004397, -0.00242939, 428.48202785, 0.40805281, 0.04240589};
     static const float neptune_cy[6] = {0.00026291, 0.00005105, 0.00035372, 218.45945325, -0.32241464, -0.00508664};
-
-    // Gravity parameter mu
-    static const double mercury_mu = 2.2032e13;
-    static const double venus_mu = 3.24859e14;
-    static const double earth_mu = 3.986004418e14;
-    static const double mars_mu = 4.282837e13;
-    static const double jupiter_mu = 1.26686534e17;
-    static const double saturn_mu = 3.7931187e16;
-    static const double uranus_mu = 6.836529e15;
-    static const double neptune_mu = 5.793939e15;
 } // namespace kepler_orbits
+
+namespace planet_props{
+
+    struct Properties{
+        double mu;
+        double rad;
+        double mass;
+        double sun_dist;
+    };
+
+    static const Properties mercury = {2.2032e13, 2439.5e3, 0.33e24, 57.9e9};
+    static const Properties venus = {3.24859e14, 6052e3, 4.87e24, 108.2e9};
+    static const Properties earth = {3.986004418e14, 6378e3, 5.97e24, 149.6e9};
+    static const Properties mars = {4.282837e13, 3396e3, 0.642e24, 228.0e9};
+    static const Properties jupiter = {1.26686534e17, 71492e3, 1898e24, 778.5e9};
+    static const Properties saturn = {3.7931187e16, 60268e3, 568e24, 1432.0e9};
+    static const Properties uranus = {6.836529e15, 25559e3, 86.8e24, 2867.0e9};
+    static const Properties neptune = {5.793939e15, 24764e3, 102e24, 4515.0e9};
+} // namespace planet_props
 
 struct orbitalParameters{
     float a0, acy; // semi-major axis

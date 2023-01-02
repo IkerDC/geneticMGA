@@ -5,6 +5,18 @@ MGAProblem::MGAProblem(){
     
 }
 
+MGAProblem::MGAProblem(const Individual ind){
+    /**
+     * @brief Constructor out of an individual, to better anaylze it.
+     */
+    float increase = ind.problem->departure; // Init at start of departure window.
+    for(unsigned int i = 0; i < ind.problem->planets.size(); i++){
+        this->planets.push_back(ind.problem->planets.at(i));
+        this->times.push_back((float)(ind.flyTimes.at(i) + increase)); //TODO: Rev this works
+        increase += (float)ind.flyTimes.at(i); // Times are as dep, t_leg1, t_leg2, should be added to know real time.
+    }
+}
+
 MGAProblem::~MGAProblem(){
 
 }
@@ -13,9 +25,9 @@ void MGAProblem::add_planet(const int planet, float at){
     /**
      * @brief Adds a new planet given the name and a time in JD
      */
-    Planet p = Planet(planet, at);
+    Planet p = Planet(planet);
     this->planets.push_back(p);
-
+    this->times.push_back(at);
 }
 
 void MGAProblem::compute_ephemeris(){
@@ -23,7 +35,7 @@ void MGAProblem::compute_ephemeris(){
      * @brief Computes the ephermeris of the planets in the class.
      */
     for(unsigned int i = 0; i < this->planets.size(); i++){
-        this->planets.at(i).compute_eph();
+        this->planets.at(i).compute_eph(this->times.at(i));
     }
 }
 
@@ -36,7 +48,8 @@ void MGAProblem::compute_transfers(){
     for(unsigned int i = 0; i < this->planets.size() - 1; i++){
         Transfer t = Transfer();
         t.add_planets(&this->planets.at(i), &this->planets.at(i+1));
-        t.compute_transfer();
+        float T = (this->times.at(i+1) - this->times.at(i)) * DAY2SEC;
+        t.compute_transfer(T);
         this->transfers.push_back(t);
     }
 
@@ -53,6 +66,12 @@ void MGAProblem::compute_flybys(){
         this->flybys.push_back(f);
     }
 
+}
+
+void MGAProblem::compute(){
+    this->compute_ephemeris();
+    this->compute_transfers();
+    this->compute_flybys();
 }
 
 double MGAProblem::computeCost() const{
@@ -76,11 +95,11 @@ void MGAProblem::plot() const{
     };
 
     // Fill the planets and the coordinates
-    for(const auto& planet: this->planets){
+    for(unsigned int i = 0; i < this->planets.size(); i++){
         visual_js["Planets"].push_back({
-            {"Name", planet.name},
-            {"At", planet.at},
-            {"Coordinates", planet.r_eph},
+            {"Name", planets.at(i).name},
+            {"At", times.at(i)},
+            {"Coordinates", planets.at(i).r_eph},
             {"Color", "gray"}
         });
     }
@@ -110,8 +129,13 @@ void MGAProblem::print() const{
     /**
      * @brief Pretty print of the whole problem.
      */
+    double dep[3];
+    minus2(this->transfers.at(0).v_dep, this->planets.at(0).v_eph, dep);
+    std::cout << "** Departure cost: "<< norm(dep) << "m/s" << std::endl;
     for(const auto& fb: this->flybys){
         std::cout << "=== FLYBY at: " << fb.planet->name << " ===" << std::endl;
         fb.print();
     }
+    std::cout << "** Arrival speed: "<< norm(this->transfers.back().v_arr) << "m/s" << std::endl;
+    std::cout << std::endl;
 }

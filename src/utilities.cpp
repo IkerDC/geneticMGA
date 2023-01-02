@@ -133,3 +133,161 @@ double rad2deg(const double x){
     return x*180.0/PI;
 }
 
+
+float rand_d(){
+    return (float)std::rand()/RAND_MAX;
+}
+
+int rand_rng(int min, int max){
+    return min + (std::rand() % static_cast<int>(max - min + 1));
+}
+
+std::string time2bitStr(const float x) {
+    int dec = int(x);
+    int fract = int((x - dec) * std::pow(10, MAX_FRACTIONAL_BIT_SIZE)); // 0.46571 -> 465 if MAX_..._SIZE = 3.
+    fract = std::round(fract / (std::pow(10, MAX_FRACTIONAL_BIT_SIZE) / std::pow(2,MAX_FRACTIONAL_BIT_SIZE))); // above 0.9375 -> overflow to 0. No that relevant, allowed.
+    return std::bitset<MAX_BIT_SIZE>((int)x).to_string() + std::bitset<MAX_FRACTIONAL_BIT_SIZE>(fract).to_string();
+}
+
+float bitStr2Time(const std::string x) {
+    float numb = std::stoi(x.substr(0, MAX_BIT_SIZE), nullptr, 2);
+    float decimal = std::stoi(x.substr(MAX_BIT_SIZE, MAX_FRACTIONAL_BIT_SIZE), nullptr, 2)/std::pow(2,MAX_FRACTIONAL_BIT_SIZE); 
+    return numb+decimal;
+}
+
+std::string uniformBitstrCross(const std::string s1, const std::string s2){
+    if(s1.size() != s2.size()){
+        throw "Invalide sizes of bit strings to uniform cross. Sizes are not equal!";
+    }
+
+    std::string res;
+    for(unsigned int i = 0; i < s1.size(); i++){
+        char bit = (rand_d() <= 0.5) ? s1.at(i) : s2.at(i);
+        res.push_back(bit);
+    }
+    return res;
+}
+
+
+size_t callback_curl(void* ptr, size_t size, size_t nmemb, std::string* data) {
+    data->append((char*)ptr, size * nmemb);
+    return size * nmemb;
+}
+
+std::string jd_to_date(float jd){
+    /**
+     * @brief Uses NASA Horizon API to convert the JD date to normal format.
+     */
+    CURL *curl;
+    CURLcode res;
+    std::string link = "https://ssd-api.jpl.nasa.gov/jd_cal.api?jd=" + std::to_string(jd);
+    std::string response_string;
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+
+    curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
+    if(curl) {
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callback_curl);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+        curl_easy_setopt(curl, CURLOPT_URL, link.c_str());
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
+
+        /* Perform the request, res will get the return code */
+        res = curl_easy_perform(curl);
+        /* Check for errors */
+        if(res != CURLE_OK){
+            return "-JD conversion failed.";
+        }
+
+        /* always cleanup */
+        curl_easy_cleanup(curl);
+    }
+
+    curl_global_cleanup();
+    nlohmann::json data = nlohmann::json::parse(response_string);
+    return data["cd"].get<std::string>();
+}
+
+double Mean2Eccentric (const double &M, const double &e)
+{
+
+	static const double tolerance = 1e-13;
+	int n_of_it = 0; // Number of iterations
+	double Eccentric,Ecc_New;
+	double err = 1.0;
+
+
+
+
+    Eccentric = M + e* std::cos(M); // Initial guess
+    while ( (err > tolerance) && (n_of_it < 100))
+    {
+        Ecc_New = Eccentric - (Eccentric - e* std::sin(Eccentric) -M )/(1.0 - e * std::cos(Eccentric));
+        err = std::fabs(Eccentric - Ecc_New);
+        Eccentric = Ecc_New;
+        n_of_it++;
+    }
+	return Eccentric;
+}
+
+
+
+void Conversion (const double *E,
+				 double *pos,
+				 double *vel,
+				 const double &mu)
+{
+	double a,e,i,omg,omp,theta;
+	double b,n;
+	double X_per[3],X_dotper[3];
+	double R[3][3];
+
+	a = E[0];
+	e = E[1];
+	i = E[2];
+	omg = E[3];
+	omp = E[4];
+	theta = E[5];
+
+	b = a * std::sqrt (1 - e*e);
+	n = std::sqrt (mu/std::pow(a,3));
+
+	const double sin_theta = std::sin(theta);
+	const double cos_theta = std::cos(theta);
+
+	X_per[0] = a * (cos_theta - e);
+	X_per[1] = b * sin_theta;
+
+	X_dotper[0] = -(a * n * sin_theta)/(1 - e * cos_theta);
+	X_dotper[1] = (b * n * cos_theta)/(1 - e * cos_theta);
+
+	const double cosomg = std::cos(omg);
+	const double cosomp = std::cos(omp);
+	const double sinomg = std::sin(omg);
+	const double sinomp = std::sin(omp);
+	const double cosi = std::cos(i);
+	const double sini = std::sin(i);
+
+	R[0][0] =  cosomg*cosomp-sinomg*sinomp*cosi;
+	R[0][1] =  -cosomg*sinomp-sinomg*cosomp*cosi;
+
+	R[1][0] =  sinomg*cosomp+cosomg*sinomp*cosi;
+	R[1][1] =  -sinomg*sinomp+cosomg*cosomp*cosi;
+
+	R[2][0] =  sinomp*sini;
+	R[2][1] =  cosomp*sini;
+
+	// evaluate position and velocity
+	for (int i = 0;i < 3;i++)
+	{
+		pos[i] = 0;
+		vel[i] = 0;
+		for (int j = 0;j < 2;j++)
+		{
+				pos[i] += R[i][j] * X_per[j];
+				vel[i] += R[i][j] * X_dotper[j];
+		}
+	}
+	return;
+}

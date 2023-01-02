@@ -13,14 +13,17 @@
 #include "planet.h"
 #include "transfer.h"
 #include "flyby.h"
+#include "genetic.h"
 
 class MGAProblem{
 public:
     std::vector<Planet> planets;
     std::vector<Transfer> transfers;
     std::vector<Flyby> flybys;
+    std::vector<float> times;
     
     MGAProblem();
+    MGAProblem(const Individual ind);
     ~MGAProblem();
 
     void add_planet(const int planet, float at);
@@ -28,6 +31,7 @@ public:
     void compute_transfers();
     void compute_flybys();
 
+    void compute();
     double computeCost() const;
     bool isSolutionValid() const;
 

@@ -14,13 +14,12 @@ public:
     Planet* p2;
     double v_dep[3];
     double v_arr[3];
-    double T;
     
     Transfer();
     ~Transfer();
 
     void add_planets(Planet* p1, Planet* p2);
-    void compute_transfer();
+    void compute_transfer(float T);
 
     void print() const;
 };
