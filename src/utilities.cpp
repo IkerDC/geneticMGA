@@ -174,40 +174,7 @@ size_t callback_curl(void* ptr, size_t size, size_t nmemb, std::string* data) {
     return size * nmemb;
 }
 
-std::string jd_to_date(float jd){
-    /**
-     * @brief Uses NASA Horizon API to convert the JD date to normal format.
-     */
-    CURL *curl;
-    CURLcode res;
-    std::string link = "https://ssd-api.jpl.nasa.gov/jd_cal.api?jd=" + std::to_string(jd);
-    std::string response_string;
 
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-
-    curl = curl_easy_init();
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 0L);
-    if(curl) {
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, callback_curl);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
-        curl_easy_setopt(curl, CURLOPT_URL, link.c_str());
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 0);
-
-        /* Perform the request, res will get the return code */
-        res = curl_easy_perform(curl);
-        /* Check for errors */
-        if(res != CURLE_OK){
-            return "-JD conversion failed.";
-        }
-
-        /* always cleanup */
-        curl_easy_cleanup(curl);
-    }
-
-    curl_global_cleanup();
-    nlohmann::json data = nlohmann::json::parse(response_string);
-    return data["cd"].get<std::string>();
-}
 
 double Mean2Eccentric (const double &M, const double &e)
 {

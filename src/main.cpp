@@ -17,26 +17,23 @@ void voyager(GenOperators genOp){
     prob.add_planet(SATURN, t2_window.first, t2_window.second);
     //prob.set_max_time(4.5*365.25); 
 
-    // Population and genetic algorithm
-    for(unsigned int i = 0; i < 1; i++)
-    {
-        Population population = Population(genOp, &prob);
-        population.inception();
-        population.runGeneration();
-        //population.plotFitnessEvolution();
+    Population population = Population(genOp, &prob);
+    population.inception();
+    population.runGeneration();
 
-        MGAProblem mga = MGAProblem(population.population.at(0));
-        mga.compute();
-        mga.print();
-        mga.plot();
+    MGAProblem mga = MGAProblem(population.population.at(0));
+    mga.compute();
+    //mga.print();
+    //mga.plot();
 
-        double inc = Tdep;
-        for(const auto& ft: population.population.at(0).flyTimes){ //NOTE: This is always the best??
-            inc += ft;
-            std::cout << ft << ", ";
-        }
-        std::cout << "   DV:" <<population.population.at(0).totalDV << " - fitness: "<<population.population.at(0).fitness << std::endl;
+    double inc = Tdep;
+    for(const auto& ft: population.population.at(0).flyTimes){
+        inc += ft;
+        std::cout << ft << ", ";
     }
+    std::cout << "   DV:" <<population.population.at(0).totalDV << " - fitness: "<<population.population.at(0).fitness << std::endl;
+
+    population.plotFitnessEvolution();
 }
 
 
@@ -66,11 +63,13 @@ void voyagerII(GenOperators genOp){
     mga.plot();
 
     double inc = Tdep;
-    for(const auto& ft: population.population.at(0).flyTimes){ //NOTE: This is always the best??
+    for(const auto& ft: population.population.at(0).flyTimes){
         inc += ft;
         std::cout << ft << ", ";
     }
     std::cout << "   DV:" <<population.population.at(0).totalDV << " - fitness: "<<population.population.at(0).fitness << std::endl;
+    
+    //population.plotFitnessEvolution();
 }
 
 
@@ -100,7 +99,7 @@ void gallileo(GenOperators genOp){
     mga.plot();
 
     double inc = Tdep;
-    for(const auto& ft: population.population.at(0).flyTimes){ //NOTE: This is always the best??
+    for(const auto& ft: population.population.at(0).flyTimes){
         inc += ft;
         std::cout << ft << ", ";
     }
@@ -123,11 +122,11 @@ void test(){
 
     // PAPER GALLILEO
     MGAProblem mga = MGAProblem();
-    mga.add_planet(EARTH, 2447848.5); // 687
-    mga.add_planet(VENUS, 2447945.5); // 97  
-    mga.add_planet(EARTH, 2448218.5); // 273
-    mga.add_planet(EARTH, 2448944.5); // 726
-    mga.add_planet(JUPITER, 2450034.5); // 1090
+    mga.add_planet(EARTH, 2443145.f + 246.0); // 687
+    mga.add_planet(JUPITER, 2443145.f + 246.0 +772.5); // 97  
+    mga.add_planet(SATURN, 2443145.f+ 246.0 +772.5 + 920.625); // 273
+    // mga.add_planet(EARTH, 2448944.5); // 726
+    // mga.add_planet(JUPITER, 2450034.5); // 1090
 
     mga.compute();
     mga.print();
@@ -168,14 +167,11 @@ int main(int argc, char *argv[]){
     genOp.crossOverProb = 0.9;
     genOp.mutationProb = 0.2;
 
-    for(unsigned int i = 0; i < 5; i++){
+    for(unsigned int i = 0; i < 1; i++){
         auto start = std::chrono::high_resolution_clock::now();
         voyagerII(genOp);
         auto finish = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> elapsed = finish - start;
         std::cout << "Elapsed time:  " << elapsed.count() << " s" << std::endl;
     }
-    
-    //test();
-    
 }

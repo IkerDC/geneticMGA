@@ -6,7 +6,6 @@
 #include <ctime>
 #include <bitset>
 #include <iostream>
-#include "curl/curl.h"
 #include "nlohmann/json.hpp"
 #include "astro.h"
 
@@ -49,7 +48,6 @@ float bitStr2Time(const std::string x);
 
 std::string uniformBitstrCross(const std::string s1, const std::string s2);
 
-std::string jd_to_date(float jd);
 
 // Pagmo
 void Conversion(const double*, double*, double*, const double &);

@@ -221,6 +221,7 @@ void Individual::evaluate(){
     if( total_time > this->problem->time_max){
         this->cost += K_TIME_PENALTY * (total_time - this->problem->time_max); 
     }
+    this->fitness = this->cost;
 }
 
 
@@ -295,8 +296,9 @@ void Population::plotFitnessEvolution(){
      */
     // TODO: Finsih me
     for(const auto& f: this->fitnessEvolution){
-        std::cout << f << std::endl;
+        std::cout << f << ",";
     }
+    std::cout<<std::endl;
 }
 
 // ----- Genetic operators. -----
@@ -314,9 +316,7 @@ void Population::selection(){
         // Roulette wheel
         for(unsigned int j = 0; j < N_POPULATION; j++){
             roulette[j] = (1/(1 + this->population.at(j).fitness)) / (sum_adjusted_ft);
-            //std::cout << this->population.at(j).fitness << std::endl;
         }
-        std::cout << "----------------------"<< std::endl;
         // Do the selection
         float mean = 0;
         for(unsigned int k = 0; k < N_POPULATION - this->geParameters.elitism_n; k++){
@@ -327,11 +327,9 @@ void Population::selection(){
                 idx++;
                 curr += roulette[idx]; 
             }
-            mean += idx;
+            idx = (idx <= N_POPULATION - 1)? idx: N_POPULATION - 1; //Sanity-check (the >= for floating points is not excat enough! In the end they value the same.)
             this->newPopulation.push_back(this->population.at(idx));
-        }
-        std::cout << "Of index took: " << mean / N_POPULATION - this->geParameters.elitism_n << std::endl; 
-        
+        }        
     }
     else if(this->geParameters.selectionType == SELECTION_TOURNAMENT){
         // Tournament method
@@ -340,7 +338,7 @@ void Population::selection(){
 
             int rnd_idx[TOURNAMENT_N];
             for(int r = 0; r < TOURNAMENT_N; r++){
-                rnd_idx[r] = rand_rng(this->geParameters.elitism_n, N_POPULATION - this->geParameters.elitism_n);
+                rnd_idx[r] = rand_rng(0, N_POPULATION - 1);
             }
             
             float best_fit = 1e20;
@@ -357,8 +355,6 @@ void Population::selection(){
             mean += fitest_idx;
             this->newPopulation.push_back(this->population.at(fitest_idx)); // selected!
         }
-        //std::cout << "Of index took: " << mean / N_POPULATION - this->geParameters.elitism_n << std::endl; 
-
     }
     else{
         throw "Unknow selection method";
@@ -395,13 +391,7 @@ void Population::mutate(){
     /**
      * @brief Mutate the generation.
      */
-    // for(auto ind: this->population){
-    //     if(rand_d() <= this->geParameters.mutationProb){ // if probability of mutation
-    //         ind.createMutation();
-
-    //     }
-    // }
-    for(unsigned int i = 0; i < N_POPULATION -  this->geParameters.elitism_n; i++){
+    for(unsigned int i = this->geParameters.elitism_n - 1; i < N_POPULATION -  this->geParameters.elitism_n; i++){
         if(rand_d() <= this->geParameters.mutationProb){ // if probability of mutation
             this->newPopulation.at(i).createMutation();
         }
@@ -483,7 +473,9 @@ void Population::runGeneration(){
 
     while (g < GEN_LIMIT){
         this->sortPopulation();
-        
+        // Record evolution of the fitness
+        this->fitnessEvolution.push_back(this->population.at(0).fitness);
+
         this->elitism();
         this->selection();
         this->crossOver();
@@ -491,12 +483,9 @@ void Population::runGeneration(){
 
         this->population = this->newPopulation;
         this->newPopulation.clear();
-
-        // Record evolution of the fitness
-        this->fitnessEvolution.push_back(this->population.at(0).fitness); 
         
         //Evolve
-        this->evolveNewGeneration();
+        this->evolveNewGeneration(); 
         g++;
     }
 
