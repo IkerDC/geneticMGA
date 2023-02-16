@@ -9,7 +9,6 @@
 #include "nlohmann/json.hpp"
 
 #include "utilities.h"
-#include "visualize.h"
 #include "planet.h"
 #include "transfer.h"
 #include "flyby.h"
