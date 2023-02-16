@@ -5,7 +5,7 @@
 #define MASS_SUN 1.98847e30
 #define DAY2SEC 86400.0
 #define MU_SUN 1.32712440018e+20
-#define CORRECTION 0.827363
+#define CORRECTION 0.827363 // ignore, if ever curious, ask Iker...
 
 #define MERCURY 1
 #define VENUS 2

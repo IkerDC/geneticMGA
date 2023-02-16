@@ -8,12 +8,15 @@ MGAProblem::MGAProblem(){
 MGAProblem::MGAProblem(const Individual ind){
     /**
      * @brief Constructor out of an individual, to better anaylze it.
+     * It has to convert the raw solution of dates to real dates, as: Dep + t0 + t1 + t2
+     * Dates are incresing (see the thesis).
      */
     float increase = ind.problem->departure; // Init at start of departure window.
+    
     for(unsigned int i = 0; i < ind.problem->planets.size(); i++){
-        this->planets.push_back(ind.problem->planets.at(i));
-        this->times.push_back((float)(ind.flyTimes.at(i) + increase)); //TODO: Rev this works
-        increase += (float)ind.flyTimes.at(i); // Times are as dep, t_leg1, t_leg2, should be added to know real time.
+        this->planets.push_back(ind.problem->planets.at(i));            // Add planet to vector.
+        this->times.push_back((float)(ind.flyTimes.at(i) + increase));  // Add the date at that planet.
+        increase += (float)ind.flyTimes.at(i);                          // Increase the time. 
     }
 }
 
@@ -23,11 +26,13 @@ MGAProblem::~MGAProblem(){
 
 void MGAProblem::add_planet(const int planet, float at){
     /**
-     * @brief Adds a new planet given the name and a time in JD
+     * @brief Adds a new planet given the name and a time in JD.
+     * Usually called when the class is build with the default constructor (not using and individual).
+     * If needed to compute a trajectory "by hand", planet and date are provided.
      */
-    Planet p = Planet(planet);
-    this->planets.push_back(p);
-    this->times.push_back(at);
+    Planet p = Planet(planet);  // Create planet
+    this->planets.push_back(p); // Add planet
+    this->times.push_back(at);  // Add time
 }
 
 void MGAProblem::compute_ephemeris(){
@@ -47,10 +52,10 @@ void MGAProblem::compute_transfers(){
 
     for(unsigned int i = 0; i < this->planets.size() - 1; i++){
         Transfer t = Transfer();
-        t.add_planets(&this->planets.at(i), &this->planets.at(i+1));
-        float T = (this->times.at(i+1) - this->times.at(i)) * DAY2SEC;
-        t.compute_transfer(T);
-        this->transfers.push_back(t);
+        t.add_planets(&this->planets.at(i), &this->planets.at(i+1));    // Sets the planets references on the new transfer instance.
+        float T = (this->times.at(i+1) - this->times.at(i)) * DAY2SEC;  // Duration of travel in seconds.
+        t.compute_transfer(T);                                          // Compute transfer
+        this->transfers.push_back(t);                                   // Add the transfer instance to the class
     }
 
 }
@@ -61,9 +66,9 @@ void MGAProblem::compute_flybys(){
      */
     for(unsigned int i = 0; i < this->transfers.size() - 1; i++){
         Flyby f = Flyby();
-        f.add_planet_transfer(&this->transfers.at(i), &this->transfers.at(i+1));
-        f.compute_flyby();
-        this->flybys.push_back(f);
+        f.add_planet_transfer(&this->transfers.at(i), &this->transfers.at(i+1));    // Sets planet of flyby reference
+        f.compute_flyby();                                                          // Compute flyby
+        this->flybys.push_back(f);                                                  // Add flyby instance to class.
     }
 
 }
@@ -74,24 +79,19 @@ void MGAProblem::compute(){
     this->compute_flybys();
 }
 
-double MGAProblem::computeCost() const{
-
-}
-
-bool MGAProblem::isSolutionValid() const{
-
-}
-
 void MGAProblem::plot() const{
     /**
      * @brief Plots the solution to the problem
      * Loads the solution to a json file. Call to an pyhton script that interprets it and plots the problem solution.
+     * To plot the problem, the trajectory is described in a json file called "visualize.json".
+     * ALl the necesary data to plot is wrote there. Other options as colors can be set.
      */
 
-    // Fills the json file.
+    // Init the json object that will go to the file.
     nlohmann::json visual_js = {
         {"Planets", {}},
-        {"Transfers", {}}
+        {"Transfers", {}},
+        {"Extra",{}}
     };
 
     // Fill the planets and the coordinates
@@ -112,11 +112,15 @@ void MGAProblem::plot() const{
         });
     }
 
+    // Fill the extra (extra info that was used in some moment.)
+    visual_js["Extra"] = {{"Departure", this->times.at(0)},{"Arrival", this->times.back()}};
+    
+
     // Write file
     std::ofstream outfile("visuals/visualize.json");
     outfile << std::setw(4) << visual_js << std::endl;
 
-    // call excutable
+    // call excutable script that plots.
     int status = system("python3 visuals/main.py &");
 
     if (status != EXIT_SUCCESS){
@@ -131,6 +135,7 @@ void MGAProblem::print() const{
      */
     double dep[3];
     minus2(this->transfers.at(0).v_dep, this->planets.at(0).v_eph, dep);
+    
     std::cout << "** Departure cost: "<< norm(dep) << "m/s" << std::endl;
     for(const auto& fb: this->flybys){
         std::cout << "=== FLYBY at: " << fb.planet->name << " ===" << std::endl;

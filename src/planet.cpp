@@ -5,7 +5,9 @@ Planet::Planet(){
 }
 
 Planet::Planet(int planet){
-    
+    /**
+     * @brief Constructor of the planet based on the name of it.
+     */
     switch (planet)
     {
     case MERCURY:
@@ -59,6 +61,10 @@ Planet::~Planet(){
 }
 
 void Planet::setParameters(const float param[6], const float param_cy[6], planet_props::Properties props){
+	/**
+	 * @brief Sets the planet info and orbital parameters provided as an argument.
+	 * 
+	 */
     this->mu = props.mu;
     this->rad = props.rad;
     this->mass = props.mass;
@@ -86,6 +92,7 @@ void Planet::compute_eph(float at){
     orbit::ephemeris(this->prm, at, this->r_eph, this->v_eph);
 }
 
+// Ephemeris from Pykep library, NOT MINE.
 void Planet::Planet_Ephemerides_Analytical (const double &mjd2000, const int &planet)
 {
 	const double RAD = M_PI/180.0;

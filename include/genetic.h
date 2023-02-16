@@ -16,8 +16,8 @@
 #include "orbital_mechanics.h"
 #include "numeric"
 
-#define N_POPULATION    50000
-#define GEN_LIMIT  500
+#define N_POPULATION    15000
+#define GEN_LIMIT  25
 
 #define SELECTION_ROULETTE  0
 #define SELECTION_TOURNAMENT    1
@@ -37,7 +37,7 @@ struct GenOperators{
     int selectionType;
     int crossOverType;
     float crossOverProb;
-    float mutationProb;  
+    float mutationProb;
 };
 
 

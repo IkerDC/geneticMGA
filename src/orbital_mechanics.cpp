@@ -4,7 +4,9 @@
 void orbit::ephemeris(const orbitalParameters& planet_prm, const double T, double* r, double* v){ //Outputs
     /**
      * @brief Computes the ephemeris of a given planet. 
-     * Returns position and speed.
+     * Returns position and velocity. For further explanation, look at:
+	 * https://ssd.jpl.nasa.gov/planets/approx_pos.html
+	 * https://space.stackexchange.com/questions/8911/determining-orbital-position-at-a-future-point-in-time
      */
 
     double T_pastCenJ2000 = (T - 2451545.0)/36525;
@@ -236,15 +238,18 @@ void orbit::patched_conic(const double* Vin, const double* Vout, const double* V
     //Convert to planetocentric velocities. relative hyperbolic. 
     double VinRel[3];
     double VoutRel[3];
+    double e;
 
     minus2(Vin, Vplanet, VinRel);
     minus2(Vout, Vplanet, VoutRel);
 
+	// Compute the semi-major axis of the incoming hyperbolic orbit
     double ain = -mu/vec2(VinRel);
+	// Compute the semi-major axis of the outgoing hyperbolic orbit
     double aout = -mu/vec2(VoutRel);
-    double e;
 
-
+	// Compute the turning angle [delta], eccentricity of the patched hyperbolic orbit [e], perigee radius of that orbit [peri] and needed delta-v
+	// to patch the to orbit toghether to have a continous orbt [dV]
     delta = std::acos(dot_prod(VinRel, VoutRel)/(norm(VinRel) * norm(VoutRel)));
     e = 1/std::sin((delta/2));
     peri = aout*(1-e); 

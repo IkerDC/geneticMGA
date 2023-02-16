@@ -17,26 +17,24 @@
 
 class MGAProblem{
 public:
-    std::vector<Planet> planets;
-    std::vector<Transfer> transfers;
-    std::vector<Flyby> flybys;
-    std::vector<float> times;
+    std::vector<Planet> planets;    // Sequence of planets in the trajectory (size N)
+    std::vector<Transfer> transfers;// Transfer between all the planets.     (size N-1)
+    std::vector<Flyby> flybys;      // Flybys                                (size N-2)
+    std::vector<float> times;       // Vector of times, i.e input/solution of the trajectory.
     
     MGAProblem();
-    MGAProblem(const Individual ind);
+    MGAProblem(const Individual ind);   // Constructor from and individual. 
     ~MGAProblem();
 
-    void add_planet(const int planet, float at);
-    void compute_ephemeris();
-    void compute_transfers();
-    void compute_flybys();
+    void add_planet(const int planet, float at);    // Adds a planet at a given time.
+    void compute_ephemeris();                       // Computes ephemeris (planets locations and velocities at their times).
+    void compute_transfers();                       // Computes the transfer between planets (velocities needed).
+    void compute_flybys();                          // Computes the flybys at the planets.
 
-    void compute();
-    double computeCost() const;
-    bool isSolutionValid() const;
+    void compute();                 // Computes the trajectorty. Ephemeris -> transfer -> flybys. Calls the three function. Completes transfer and flybys attributes in the class.
 
-    void plot() const;
-    void print() const;
+    void plot() const;      // Plots the solution. Uses the Python code.
+    void print() const;     // Prints a description of the whole trajectory.
 };
 
 

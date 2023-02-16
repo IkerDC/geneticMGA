@@ -283,6 +283,7 @@ void Population::inception(){
     }
 }
 
+
 void Population::sortPopulation(){
     /**
      * @brief Sorts the population vector from fitest to less fit.
@@ -446,8 +447,6 @@ void Population::evolveNewGeneration(){
     t8.join();
     t9.join();
     t10.join();
-    
-
 }
 
 void Population::evolveNewGenerationThreaded(int indx_start, int indx_end){
@@ -474,7 +473,7 @@ void Population::runGeneration(){
     while (g < GEN_LIMIT){
         this->sortPopulation();
         // Record evolution of the fitness
-        this->fitnessEvolution.push_back(this->population.at(0).fitness);
+        //this->fitnessEvolution.push_back(this->population.at(0).fitness);
 
         this->elitism();
         this->selection();

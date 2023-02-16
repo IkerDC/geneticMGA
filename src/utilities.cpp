@@ -50,7 +50,7 @@ void cross_prod(const double* v1, const double* v2, double* out){
 	out[2]= v1[0] * v2[1] - v1[1] * v2[0];
 }
 
-
+// Not mine: From Pagmo/Pykep
 double tofabn(const double &sigma, const double &alfa, const double &beta){
     if (sigma > 0)
     {
@@ -62,7 +62,7 @@ double tofabn(const double &sigma, const double &alfa, const double &beta){
     }
 }
 
-
+// Not mine: From Pagmo/Pykep
 void vers(const double* v1, double* v2){
     double v_mod = 0;
 	unsigned int i;
@@ -80,7 +80,7 @@ void vers(const double* v1, double* v2){
 	}
 }
 
-
+// Not mine: From Pagmo/Pykep
 double x2tof(const double &x,const double &s,const double &c, bool prograde){
     double am, a, alfa, beta;
 
@@ -135,14 +135,17 @@ double rad2deg(const double x){
 
 
 float rand_d(){
+    // Random number between 0 and 1.
     return (float)std::rand()/RAND_MAX;
 }
 
 int rand_rng(int min, int max){
+    // Random number between min and max
     return min + (std::rand() % static_cast<int>(max - min + 1));
 }
 
 std::string time2bitStr(const float x) {
+    // int time to bit string
     int dec = int(x);
     int fract = int((x - dec) * std::pow(10, MAX_FRACTIONAL_BIT_SIZE)); // 0.46571 -> 465 if MAX_..._SIZE = 3.
     fract = std::round(fract / (std::pow(10, MAX_FRACTIONAL_BIT_SIZE) / std::pow(2,MAX_FRACTIONAL_BIT_SIZE))); // above 0.9375 -> overflow to 0. No that relevant, allowed.
@@ -150,12 +153,14 @@ std::string time2bitStr(const float x) {
 }
 
 float bitStr2Time(const std::string x) {
+    // bit string to float time
     float numb = std::stoi(x.substr(0, MAX_BIT_SIZE), nullptr, 2);
     float decimal = std::stoi(x.substr(MAX_BIT_SIZE, MAX_FRACTIONAL_BIT_SIZE), nullptr, 2)/std::pow(2,MAX_FRACTIONAL_BIT_SIZE); 
     return numb+decimal;
 }
 
 std::string uniformBitstrCross(const std::string s1, const std::string s2){
+    // uniform bit crossing methof fucntion.
     if(s1.size() != s2.size()){
         throw "Invalide sizes of bit strings to uniform cross. Sizes are not equal!";
     }
@@ -169,13 +174,7 @@ std::string uniformBitstrCross(const std::string s1, const std::string s2){
 }
 
 
-size_t callback_curl(void* ptr, size_t size, size_t nmemb, std::string* data) {
-    data->append((char*)ptr, size * nmemb);
-    return size * nmemb;
-}
-
-
-
+// Not mine: From Pagmo/Pykep
 double Mean2Eccentric (const double &M, const double &e)
 {
 
@@ -199,7 +198,7 @@ double Mean2Eccentric (const double &M, const double &e)
 }
 
 
-
+// Not mine: From Pagmo/Pykep
 void Conversion (const double *E,
 				 double *pos,
 				 double *vel,

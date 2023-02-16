@@ -3,6 +3,11 @@
 
 #include <exception>
 
+/**
+ * @brief Contains exception defined for the algorithm.
+ * If needed, add here your personalized exceptions.
+ */
+
 struct UnknowPLanet : public std::exception {
     const char* what() const throw () {
         return "Unrecognized planet.";
