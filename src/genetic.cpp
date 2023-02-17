@@ -7,17 +7,20 @@ ProblemDefinition::~ProblemDefinition(){
 }
 
 void ProblemDefinition::add_planet(int _p, float min, float max){
-    
+    /**
+     * @brief Adds a planet to the list, and its time windows to.
+     * Planet is added to its list. The time dates are added to its list.
+     * We will consider: this->planets.at(i) has time dates at the same index, thus at: this->timeWindows.at(i).
+     */
     this->planets.push_back(Planet(_p));
+    
+    // Sanity check.
     if(min >= max){
         throw timeRange();
     }
 
+    // Add the time windows 
     this->timeWindows.push_back(std::make_pair(min, max));
-}
-
-void ProblemDefinition::set_max_time(float t){
-    this->time_max = t;
 }
 
 
@@ -41,6 +44,7 @@ Individual::~Individual(){
 std::string Individual::getChromosome() const{
     /**
      * @brief Get full chromosome in a bitstring
+     * Flytimes are converted to bit string and concatenates to create the full chromosome.
      */
     std::string chromo;
     for(const auto& t: this->flyTimes){
@@ -53,16 +57,17 @@ std::string Individual::getGene(int at) const{
     /**
      * @brief Get a given gene in bitstring format;
      */
+    // Sanity check.
     if(at >= this->flyTimes.size() || at < 0){
         throw "Gene position out of range";
     }
-    //std::cout << this->flyTimes.at(at) << std::endl;
     return time2bitStr(this->flyTimes.at(at));
 }
 
 void Individual::setChromosome(std::string chromo){
     /**
-     * @brief Given a full chromosome, convert to flight times and update it.
+     * @brief Given a full chromosome, converts it to flight times and update it.
+     * Calls setGene to set each time at flyTimes.
      */
     for(unsigned int i = 0; i < this->flyTimes.size(); i++){
         this->setGene(chromo.substr(i * (MAX_BIT_SIZE + MAX_FRACTIONAL_BIT_SIZE),(MAX_BIT_SIZE + MAX_FRACTIONAL_BIT_SIZE)), i);
@@ -71,22 +76,32 @@ void Individual::setChromosome(std::string chromo){
 
 void Individual::setGene(std::string gene, int at){
     /**
-     * @brief Given a gene and position convert to flytime and update.
+     * @brief Given a gene and position convert to fly time and update.
+     * Upates the value at the corresponding index at the flyTimes vector.
      */
+    // Sanity check.
     if(at >= this->flyTimes.size() || at < 0){
         throw "Gene position out of range";
     }
-    float new_time = bitStr2Time(gene);
+
+    float new_time = bitStr2Time(gene); // Gene to float (JD date)
+
+    // Because the resolution of the gene allows for dates that may be outside the time window of that gene, we must consider this.
+    // If the gene as a float is outside the window, we take limit of it.
+    // Above the window = we take the upper limit.
+    // Below the window = we take the lower limit.
     new_time = (new_time >= this->problem->timeWindows.at(at).first) ? new_time: this->problem->timeWindows.at(at).first;
     new_time = (new_time <= this->problem->timeWindows.at(at).second) ? new_time : this->problem->timeWindows.at(at).second;
+    
+    // Update the new time in the vector at the corresponding index.
     this->flyTimes.at(at) = new_time;
 }
 
 
 void Individual::mate(const Individual& partner, int crossType){
     /**
-     * @brief Matting function that creates a new individual. 
-     * The new individual is actually the current one, value on him are update. Parent -> Transforms to "child".
+     * @brief Mating function that creates a new individual. 
+     * The new individual is actually the current one, value on him are updated. Parent -> Transforms to "child".
      */
     if(crossType == CROSS_UNIFORM){
         // Take the full chromosomes. Pick randmly the bit for the child from one of the parents.
@@ -98,49 +113,38 @@ void Individual::mate(const Individual& partner, int crossType){
     }
     else if(crossType == CROSS_SINGLE_GENE){
         // Select a random Gene. Do CROSS_UNIFORM only on that gene.
-        const int r_gene = rand() % this->flyTimes.size();
-        std::string p1_g = time2bitStr(this->flyTimes.at(r_gene));
-        std::string p2_g = time2bitStr(partner.flyTimes.at(r_gene));
-        std::string child_g = uniformBitstrCross(p1_g, p2_g);
+        const int r_gene = rand() % this->flyTimes.size();          // Random chosen gene.
+        std::string p1_g = time2bitStr(this->flyTimes.at(r_gene));  // Get gene of parent 1 as bitstr
+        std::string p2_g = time2bitStr(partner.flyTimes.at(r_gene));// Get gene of parent 2 as bitstr
+        std::string child_g = uniformBitstrCross(p1_g, p2_g);       // Cross the genes using the uniform technique
 
-        this->setGene(child_g, r_gene);
+        this->setGene(child_g, r_gene); // Set the new gene on parent 1 (current this).
     }
     else if(crossType == CROSS_SINGLE_POINT){
         // From the full chromosome. At a given random point, interchange the parent 1 bits by the partner's bits.
-        std::string p1_chromo = this->getChromosome();
-        std::string p2_chromo = partner.getChromosome();
+        std::string p1_chromo = this->getChromosome();      // Chromosome of parent 1 (current this)
+        std::string p2_chromo = partner.getChromosome();    // Chromosome of parent 2.
         
-        const int cut_at = std::rand() % p1_chromo.size();
+        const int cut_at = std::rand() % p1_chromo.size();  // Random cut point on the chromosomes.
         std::string child;
-        child.append(p1_chromo.substr(0, cut_at)); // Start to cut_at.
+        child.append(p1_chromo.substr(0, cut_at)); // Start to cut_at.      
         child.append(p2_chromo.substr(cut_at)); // from cut_at pos to end.
 
-        this->setChromosome(child);
+        this->setChromosome(child); // Set the current new chromosome
     }
     else if(crossType == CROSS_DOUBLE_POINT){
         // From the full chromosome. At a given random point 1, interchange the parent 1 bits by the partner's bits. Do the same a second time at point 2.
-        std::string p1_chromo = this->getChromosome();
-        std::string p2_chromo = partner.getChromosome();
+        std::string p1_chromo = this->getChromosome();      // Chromosome of parent 1 (current this)
+        std::string p2_chromo = partner.getChromosome();    // Chromosome of parent 2.
         
         const int cut_at_1 = rand_rng(1, p1_chromo.size() - 2); // From above 1, to at least leave 1 for the second cut.
         const int cut_at_2 = rand_rng(cut_at_1 + 1,  p1_chromo.size() - 1); // From at least one bit after cut one to end leave at least one for this cut.
         std::string child;
-        child.append(p1_chromo.substr(0, cut_at_1)); 
-        child.append(p2_chromo.substr(cut_at_1, cut_at_2 - cut_at_1));
-        child.append(p1_chromo.substr(cut_at_2));
+        child.append(p1_chromo.substr(0, cut_at_1));                    // Append the first part
+        child.append(p2_chromo.substr(cut_at_1, cut_at_2 - cut_at_1));  // Append the second part
+        child.append(p1_chromo.substr(cut_at_2));                       // Append the last part
 
-        this->setChromosome(child);
-    }
-    else if (crossType == CROSS_PERSONALIZED){
-        // Times are crossed staticly. As Half points (centroids) between parents depending on their fitness.
-        // Done per gene to have different solution, otherwise per 2 parents there exist only one solution = 1 child.
-        const int r_gene = rand() % this->flyTimes.size();
-        float fit_w = (this->fitness / (this->fitness + partner.fitness)); 
-        int sign = (this->flyTimes.at(r_gene) > partner.flyTimes.at(r_gene))? -1 : 1;
-        float centroid_t = this->flyTimes.at(r_gene) + sign * std::fabs(this->flyTimes.at(r_gene) - partner.flyTimes.at(r_gene))*fit_w; 
-        std::string chlild_t = time2bitStr(centroid_t);
-        this->setGene(chlild_t, r_gene);
-
+        this->setChromosome(child);     // Set new chromosome. //TODO: Commented until here
     }
     else{
         throw "Unkown crossover type!";

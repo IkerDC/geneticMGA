@@ -28,61 +28,58 @@
 #define CROSS_SINGLE_GENE   1
 #define CROSS_SINGLE_POINT  2
 #define CROSS_DOUBLE_POINT  3
-#define CROSS_PERSONALIZED  4
 
 #define K_TIME_PENALTY 10
 
 struct GenOperators{
-    int elitism_n;
-    int selectionType;
-    int crossOverType;
-    float crossOverProb;
-    float mutationProb;
+    int elitism_n;          // Number of individuals in elit.
+    int selectionType;      // Selection type
+    int crossOverType;      // Crossover type
+    float crossOverProb;    // Probability of doing crossover instead of reproduction. (set high like 0.9)
+    float mutationProb;     // Probability of mutation
 };
 
 
 class ProblemDefinition {
 public:
-    float departure;
-    std::vector<Planet> planets;
-    std::vector<std::pair<float, float>> timeWindows; //{Td(min, max), T1(min,max), T2(min, max), ... }
-    float time_max = 7305; //20 years
+    float departure;                // Departure start window. This is the "base" date, all the times are added to this value.
+    std::vector<Planet> planets;    // Sequence of planets.
+    std::vector<std::pair<float, float>> timeWindows; // Time windows for each date {Td(min, max), T1(min,max), T2(min, max), ... }
 
-    ProblemDefinition(const float _dep);
+    ProblemDefinition(const float _dep);    // Constructor with the departure as argument.
     ~ProblemDefinition();
 
-    void add_planet(int _p, float min, float max);
-    void set_max_time(float t);
+    void add_planet(int _p, float min, float max);  // Adds a planet to the list with the time window as well.    
 };
 
 
 class Individual {
 private:
-    void updateDepartureCost(double dV);
-    void updateCost(const Planet& planet, double dV, double delta, double peri, double vin);
-    void setChromosome(std::string chromo);
-    void setGene(std::string gene, int at);
+    void updateDepartureCost(double dV);    // Updates the departure cost to the cost variable.
+    void updateCost(const Planet& planet, double dV, double delta, double peri, double vin);    // Updates the cost of a flyby. Also considers the penalty function, thus all the arguments.
+    void setChromosome(std::string chromo); // From a bitstring (chromosome) as argument, it sets the flyTimes vector. BitStr -> to -> vector of dates (solution).
+    void setGene(std::string gene, int at); // Sets a single value in flyTime, i.e. one of the genes. Given the gene as bitstr, it converts it to the floating JD date.
 
 public:
-    std::vector<float> flyTimes;          // Chromosome (each variable is a gene).
+    std::vector<float> flyTimes;        // Vector of dates (solution/input of the ind) = Chromosome (each variable (time date) in the list is a gene).
     ProblemDefinition* problem;         // Problem reference (planets reference to operate are in there).
-    double fitness;                      // Fitness of the individual.
-    double cost;                         // Total cost of the individual based on the cost function.
-    double totalDV = 0.0;               // Total amount of dV.
+    double fitness;                     // Fitness of the individual.
+    double cost;                        // Total cost of the individual based on the cost function: objective and penalty.
+    double totalDV = 0.0;               // Total amount of dV. Of that solution.
 
     Individual();
-    Individual(ProblemDefinition* prob);
+    Individual(ProblemDefinition* prob);    // Construct out of the problem reference.
     ~Individual();
-    std::string getChromosome() const;
-    std::string getGene(int at) const;
+    std::string getChromosome() const;      // Returns the individual chromosome.
+    std::string getGene(int at) const;      // Returns a single gene (the one at "at" index in the time list).
     
     void mate(const Individual& partner, int crossType); // Mate with another individual to create a new child (self parent transforms to child).
-    void createMutation();
+    void createMutation();  // Create a mutation on the individual (using the bit flip method).
 
-    void init();
-    int getFlyTime() const;
+    void init();            // Randomly initizializes the vector of flyTimes.
+    int getFlyTime() const; // Returns the whole duration of the interplanetary trajectory.
 
-    void evaluate();
+    void evaluate();        // Evaluates/computes the trajectory.
 
     // Used to facilitate sorting of individuals.
     bool operator< (const Individual &other) const {
@@ -103,32 +100,31 @@ public:
 
 class Population{
 private:
-    void sortPopulation();
-    std::vector<float> fitnessEvolution;
+    void sortPopulation();                  // Sort the population from fitest to less fit. (fitest = less cost).
+    std::vector<float> fitnessEvolution;    // Vector where the fitness evolution of the population can be saved. 
 
-    void evolveNewGenerationThreaded(int indx_start, int indx_end);
+    void evolveNewGenerationThreaded(int indx_start, int indx_end); // Evolve a portion of the population, individuals between the indexes [indx_start; indx_end] in the population list. 
 
 public:
-    std::vector<Individual> population;
-    std::vector<Individual> newPopulation;
-    const GenOperators geParameters;
-    int generationCount;
+    std::vector<Individual> population;     // Population vector: Contains all the individuals.
+    std::vector<Individual> newPopulation;  // Auxiliar vector for the new generation during the evolution.
+    const GenOperators geParameters;        // GA parameters
+    int generationCount;                    // Count of generations runned.
 
     Population(const GenOperators params, ProblemDefinition* problem);
     ~Population();
 
-    void inception();   // let the civilization begin.
-    void mateIndividuals(Individual parent1, Individual parent2);
-    void plotFitnessEvolution();
+    void inception();   // let the civilization begin (initis all the individuals to random time dates).
+    void mateIndividuals(Individual parent1, Individual parent2);   // Mates two individuales
 
-    // Genetic operators.
+    // Genetic operators (self explanatory).
+    void elitism();
     void selection();
     void crossOver();
     void mutate();
-    void elitism();
 
-    void evolveNewGeneration();
-    void runGeneration();
+    void evolveNewGeneration();     // Evolves the current population to the next generation.
+    void runGeneration();           // Runs the whole GA until the max number of generations has been reached.
 };
 
 #endif //INDIVIDUAL_H
