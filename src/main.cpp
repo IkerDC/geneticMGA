@@ -144,6 +144,8 @@ int main(int argc, char *argv[]){
     
     // Define the GA parameters.
     GenOperators genOp;
+    genOp.n_population = 15000;         // Size of population.
+    genOp.gen_limit = 25;               // Number of generations.
     genOp.elitism_n = 5;                        // Number of individuals in the elit group
     genOp.selectionType = SELECTION_TOURNAMENT; // Method of selection
     genOp.crossOverType = CROSS_DOUBLE_POINT;   // Method of cross over

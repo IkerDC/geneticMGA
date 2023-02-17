@@ -32,7 +32,6 @@ void ProblemDefinition::add_planet(int _p, float min, float max){
 
 Individual::Individual(ProblemDefinition* prob){
     this->problem = prob;
-    this->cost = 0.f;
     this->fitness = 0.f;
     this->totalDV = 0.f;
 }
@@ -144,7 +143,7 @@ void Individual::mate(const Individual& partner, int crossType){
         child.append(p2_chromo.substr(cut_at_1, cut_at_2 - cut_at_1));  // Append the second part
         child.append(p1_chromo.substr(cut_at_2));                       // Append the last part
 
-        this->setChromosome(child);     // Set new chromosome. //TODO: Commented until here
+        this->setChromosome(child);     // Set new chromosome.
     }
     else{
         throw "Unkown crossover type!";
@@ -155,110 +154,106 @@ void Individual::mate(const Individual& partner, int crossType){
 void Individual::createMutation(){
     /**
      * @brief Generates mutation in the individual.
+     * Single bit flip technique.
      */
-    std::string chromo = this->getChromosome();
-    int mutate_at = rand_rng(0, chromo.size() - 1);
-    chromo.at(mutate_at) = (chromo.at(mutate_at) == '0')? '1' : '0';
+    std::string chromo = this->getChromosome();     // get the chromosome
+    int mutate_at = rand_rng(0, chromo.size() - 1); // Chose a random flip from the chromosome
+    chromo.at(mutate_at) = (chromo.at(mutate_at) == '0')? '1' : '0';    // Flip that bit
 
-    this->setChromosome(chromo);
+    this->setChromosome(chromo);    // Set again the new chromosome
 }
 
 
 void Individual::init(){
     /**
      * @brief Used to initizilize the individual to a random vector of times (within the windows).
+     * Essentialy it is like the birth of the individuals.
      */
     for(const auto& window: this->problem->timeWindows){
-        float t = window.first + rand() % (int)(window.second - window.first - 1);
-        t += rand_d(); // Add decimals to inrease resolution.
+        float t = window.first + rand() % (int)(window.second - window.first - 1);  // Random value inside the window for that date.
+        t += rand_d();  // Add decimals to inrease resolution.
         this->flyTimes.push_back(t);
     }
 }
 
 
-int Individual::getFlyTime() const{
-
-}
-
 void Individual::evaluate(){
     /**
      * @brief Solves the mga problem. Updates the cost.
-     * 
+     * It is done in a direct way basis, no info about the trajectory is saved more than the dates, dv and cost/fitness.
+     * It is a direct version of compute from MGAProblem class. 
+     * This function computes the trajectory coded by the dates of the individual.
      */
+    // Reset from old execution.
+    this->fitness = 0.f;
+    this->totalDV = 0.f;
 
-    // Per planets
+    float total_penalty = 0.f;
+
+    // Per planets.
+    // We take three planets each time P1 - P2 - P3.
+    // We compute the trasfers P1 - P2 and P2 - P3
+    // We compute the flyby at P2.
+    // This is done each time: Ex we have P1-P2-P3-P4-P5. We will have (P1-P2-P3) then (P2-P3-P4) then (P3-P4-P5) -> Three flybys.
     for(unsigned int i = 0; i < this->problem->planets.size() - 2; i++){
-        double r1[3], v1[3], r2[3], v2[3], r3[3], v3[3];
+        double r1[3], v1[3], r2[3], v2[3], r3[3], v3[3];    // Variables to save the ephemeris.
+        // Remenber that times are accumulative. We need real time, thus we need to compute them.
         double T1 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + i + 1, 0.0); // Times are in format [Departure T, +ΔT1, +ΔT2,..]
         double T2 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 1) + 1, 0.0);
         double T3 = this->problem->departure + std::accumulate(this->flyTimes.begin(), this->flyTimes.begin() + (i + 2) + 1, 0.0);
+        // Ephemeris of the planets
         orbit::ephemeris(this->problem->planets.at(i).prm, T1, r1, v1);
         orbit::ephemeris(this->problem->planets.at(i + 1).prm, T2, r2, v2);
         orbit::ephemeris(this->problem->planets.at(i + 2).prm, T3, r3, v3);
 
-        double v_dep1[3], v_arr2[3], v_dep2[3], v_arr3[3];
-
+        double v_dep1[3], v_arr2[3], v_dep2[3], v_arr3[3];  // Variables to save the transfers.
+        // Transfers (lambert) computation.
         orbit::lambert(r1, r2, (T2 - T1) * DAY2SEC, MU_SUN, v_dep1, v_arr2);
         orbit::lambert(r2, r3, (T3 - T2) * DAY2SEC, MU_SUN, v_dep2, v_arr3);
 
-        double dV, delta, peri;
+        double dV, delta, peri; // Variables to save the flyby
+        // Flyby computation
         orbit::patched_conic(v_arr2, v_dep2, v2, this->problem->planets.at(i + 1).mu, dV, delta, peri);
 
-        // Cost update if departure too.
-        // std::cout << "------------------------------------------" << std::endl;
+        // If departure planet: we have to add the departure delta-v
         if(i == 0){
             // Departure is speed must be considered at infinity, accouting for the speed of earth, automaticlly given to the prove.
             double v_dep_at_infi[3];
             minus2(v_dep1, v1, v_dep_at_infi);
-            this->updateDepartureCost(norm(v_dep_at_infi));
-            this->totalDV += norm(v_dep_at_infi);
+            this->totalDV += norm(v_dep_at_infi); // Departure dV.
         }
 
-        // Cost update
-        this->updateCost(this->problem->planets.at(i + 1), dV, delta, peri, norm(v_arr2));
-        this->totalDV += dV;
+        // Cost of flyby update
+        total_penalty += this->getPenalty(this->problem->planets.at(i + 1), dV, delta, peri, norm(v_arr2)); // Flyby dV cost
+        this->totalDV += dV;                                                                                // Flyby dV.
     }
 
-
-    // Time penalty cost if the time is to big.
-    float total_time = std::accumulate(this->flyTimes.begin(), this->flyTimes.end(), 0.0);
-    if( total_time > this->problem->time_max){
-        this->cost += K_TIME_PENALTY * (total_time - this->problem->time_max); 
-    }
-    this->fitness = this->cost;
+    // Update: the fitness is the cost. Objective function is the total amount of dV
+    this->fitness = this->totalDV + total_penalty;
 }
 
 
-void Individual::updateCost(const Planet& planet, double dV, double delta, double peri, double vin){
+float Individual::getPenalty(const Planet& planet, double dV, double delta, double peri, double vin) const{
     /**
-     * @brief Updates the current cost.
-     * - Accumulates the delta V of the flyby.
+     * @brief Returns the penalty cost.
      * - If the flyby is not feasable (too small peri for instance) it increases the cost a lot (to avoid solution evolving).
      */
-    // TODO: change to also consider the perigee and maybe the angle too???
-    this->cost += dV;
+    float penalty = 0.f;
 
-    // Penalty function.
-    //this->cost += -2*std::log10(peri / (1.1 * planet.rad)); // Penalize low perigee radius. //FIXME: This is BS
+    // Low perigee radius HARD penalty. 
     if(peri < 1.1 * planet.rad){
-        this->cost += 1e10;
+        penalty += 1e10;
     }
 
+    // Low speed flyby penalty. Using the formula from Jacob A. Englander, Bruce A. Conway, and Trevor Williams. 
+    // Automated mission planning via evolutionary algorithms
     double rsoi = std::pow((planet.mass / MASS_SUN), 2/5) * planet.sun_dist;
     double E = ((vin * vin) / 2) - planet.mu/rsoi; // Penalize low velocities flybys (can lead to spacecraft planet capture).
     if(E < 0){
-        this->cost += 1/vin;
+        penalty += 1/vin;
     }
+    return penalty;
 }
-
-void Individual::updateDepartureCost(double dV){
-    /**
-     * @brief Adds departure cost.
-     */
-    this->cost += dV;
-}
-
-
 
 
 /*
@@ -268,8 +263,8 @@ void Individual::updateDepartureCost(double dV){
 */
  
 Population::Population(const GenOperators params, ProblemDefinition* problem) : geParameters(params), 
-                                                                                population(N_POPULATION, Individual(problem)), 
-                                                                                newPopulation(N_POPULATION, Individual(problem)){
+                                                                                population(params.n_population, Individual(problem)), 
+                                                                                newPopulation(params.n_population, Individual(problem)){
 
 }
 
@@ -282,8 +277,8 @@ void Population::inception(){
      * @brief Initializes each individual randomly.
      */
     for(auto& ind: this->population){
-        ind.init();
-        ind.evaluate();
+        ind.init();     // Init random the individual
+        ind.evaluate(); // Evaluate is trajectory and fitness. So we can start the evolution.
     }
 }
 
@@ -295,17 +290,6 @@ void Population::sortPopulation(){
     std::sort(this->population.begin(), this->population.end());
 }
 
-void Population::plotFitnessEvolution(){
-    /**
-     * @brief Plots the fitness evolution.
-     */
-    // TODO: Finsih me
-    for(const auto& f: this->fitnessEvolution){
-        std::cout << f << ",";
-    }
-    std::cout<<std::endl;
-}
-
 // ----- Genetic operators. -----
 void Population::selection(){
     /**
@@ -313,18 +297,18 @@ void Population::selection(){
      */
     if(this->geParameters.selectionType == SELECTION_ROULETTE){
         float sum_adjusted_ft = 0.f;
-        float roulette[N_POPULATION];
+        float roulette[this->geParameters.n_population];
         
-        for(unsigned int i = 0; i < N_POPULATION; i++){
+        for(unsigned int i = 0; i < this->geParameters.n_population; i++){
             sum_adjusted_ft += 1/(1 + this->population.at(i).fitness);
         }
         // Roulette wheel
-        for(unsigned int j = 0; j < N_POPULATION; j++){
+        for(unsigned int j = 0; j < this->geParameters.n_population; j++){
             roulette[j] = (1/(1 + this->population.at(j).fitness)) / (sum_adjusted_ft);
         }
         // Do the selection
         float mean = 0;
-        for(unsigned int k = 0; k < N_POPULATION - this->geParameters.elitism_n; k++){
+        for(unsigned int k = 0; k < this->geParameters.n_population - this->geParameters.elitism_n; k++){
             float r = rand_d();
             float curr = roulette[0];
             int idx = 0;
@@ -332,18 +316,18 @@ void Population::selection(){
                 idx++;
                 curr += roulette[idx]; 
             }
-            idx = (idx <= N_POPULATION - 1)? idx: N_POPULATION - 1; //Sanity-check (the >= for floating points is not excat enough! In the end they value the same.)
+            idx = (idx <= this->geParameters.n_population - 1)? idx: this->geParameters.n_population - 1; //Sanity-check (the >= for floating points is not excat enough! In the end they value the same.)
             this->newPopulation.push_back(this->population.at(idx));
         }        
     }
     else if(this->geParameters.selectionType == SELECTION_TOURNAMENT){
         // Tournament method
         float mean = 0.f;
-        for(unsigned int i = 0; i < N_POPULATION - this->geParameters.elitism_n; i++){
+        for(unsigned int i = 0; i < this->geParameters.n_population - this->geParameters.elitism_n; i++){
 
             int rnd_idx[TOURNAMENT_N];
             for(int r = 0; r < TOURNAMENT_N; r++){
-                rnd_idx[r] = rand_rng(0, N_POPULATION - 1);
+                rnd_idx[r] = rand_rng(0, this->geParameters.n_population - 1);
             }
             
             float best_fit = 1e20;
@@ -373,12 +357,12 @@ void Population::crossOver(){
      */
 
     // Sanity check
-    if(this->newPopulation.size() != N_POPULATION){
+    if(this->newPopulation.size() != this->geParameters.n_population){
         throw "The population expected to be crossed is missing individuales. Size is different from N_POPULATION";
     }
     
     // From elitism size upwards, there are the selected individuals.
-    for(unsigned int i = this->geParameters.elitism_n; i < N_POPULATION - 1; i = i+2){
+    for(unsigned int i = this->geParameters.elitism_n; i < this->geParameters.n_population - 1; i = i+2){
         if(rand_d() <= this->geParameters.crossOverProb){
             // CrossOver (Each cross creates a chill out from the parent - 2 parents -> 2 cross -> 2 childs).
             Individual temp_p1 = this->newPopulation.at(i); // Direct update of child in parent. Should temp parent 1 (first to be changed).
@@ -394,9 +378,9 @@ void Population::crossOver(){
 
 void Population::mutate(){
     /**
-     * @brief Mutate the generation.
+     * @brief Mutate the population.
      */
-    for(unsigned int i = this->geParameters.elitism_n - 1; i < N_POPULATION -  this->geParameters.elitism_n; i++){
+    for(unsigned int i = this->geParameters.elitism_n - 1; i < this->geParameters.n_population -  this->geParameters.elitism_n; i++){
         if(rand_d() <= this->geParameters.mutationProb){ // if probability of mutation
             this->newPopulation.at(i).createMutation();
         }
@@ -421,15 +405,9 @@ void Population::elitism(){
 // ***** Evolution ******
 void Population::evolveNewGeneration(){
     /**
-     * @brief Evaluates each individual
+     * @brief Evaluates each individual.
+     * In a multhreaded maneur.
      */
-    // for(auto& ind: this->population){
-    //     ind.cost = 0;
-    //     ind.fitness = 0;
-    //     ind.totalDV = 0;
-    //     ind.evaluate();
-    //     ind.fitness = ind.cost; // delerte me, do somewhere else (TODO:);
-    // }
     int int_size = this->population.size() / 10;
     std::thread t1(&Population::evolveNewGenerationThreaded, this,  int_size * 0, int_size * 1);
     std::thread t2(&Population::evolveNewGenerationThreaded, this, int_size * 1, int_size * 2);
@@ -451,6 +429,7 @@ void Population::evolveNewGeneration(){
     t8.join();
     t9.join();
     t10.join();
+    // The join() waits for the threads to end. Its a blocking call.
 }
 
 void Population::evolveNewGenerationThreaded(int indx_start, int indx_end){
@@ -458,11 +437,7 @@ void Population::evolveNewGenerationThreaded(int indx_start, int indx_end){
      * @brief Base evolution for multithreaded evolution
      */
     for(unsigned int i = indx_start; i < indx_end; i++){
-        this->population.at(i).cost = 0;
-        this->population.at(i).fitness = 0;
-        this->population.at(i).totalDV = 0;
-        this->population.at(i).evaluate();
-        this->population.at(i).fitness = this->population.at(i).cost; // delerte me, do somewhere else (TODO:);
+        this->population.at(i).evaluate();  // Evaluate them
     }
 }
 
@@ -474,9 +449,10 @@ void Population::runGeneration(){
     int g = 0;
     this->newPopulation.clear();
 
-    while (g < GEN_LIMIT){
+    while (g < this->geParameters.gen_limit){
         this->sortPopulation();
-        // Record evolution of the fitness
+
+        // Record evolution of the fitness or whatever if you need it. 
         //this->fitnessEvolution.push_back(this->population.at(0).fitness);
 
         this->elitism();
@@ -494,12 +470,4 @@ void Population::runGeneration(){
 
 }
 
-
-void Population::mateIndividuals(Individual parent1, Individual parent2){
-    /**
-     * @brief Mate two indivuals to produce to childs at the same time.
-     * Child will be the oposite.
-     */
-
-}
 

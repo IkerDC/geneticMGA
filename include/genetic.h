@@ -16,9 +16,6 @@
 #include "orbital_mechanics.h"
 #include "numeric"
 
-#define N_POPULATION    15000
-#define GEN_LIMIT  25
-
 #define SELECTION_ROULETTE  0
 #define SELECTION_TOURNAMENT    1
 
@@ -32,6 +29,8 @@
 #define K_TIME_PENALTY 10
 
 struct GenOperators{
+    int n_population;       // Size of population
+    int gen_limit;          // Limit of generations
     int elitism_n;          // Number of individuals in elit.
     int selectionType;      // Selection type
     int crossOverType;      // Crossover type
@@ -55,8 +54,7 @@ public:
 
 class Individual {
 private:
-    void updateDepartureCost(double dV);    // Updates the departure cost to the cost variable.
-    void updateCost(const Planet& planet, double dV, double delta, double peri, double vin);    // Updates the cost of a flyby. Also considers the penalty function, thus all the arguments.
+    float getPenalty(const Planet& planet, double dV, double delta, double peri, double vin) const;    // Returns the penalty the cost of a flyby.
     void setChromosome(std::string chromo); // From a bitstring (chromosome) as argument, it sets the flyTimes vector. BitStr -> to -> vector of dates (solution).
     void setGene(std::string gene, int at); // Sets a single value in flyTime, i.e. one of the genes. Given the gene as bitstr, it converts it to the floating JD date.
 
@@ -64,7 +62,6 @@ public:
     std::vector<float> flyTimes;        // Vector of dates (solution/input of the ind) = Chromosome (each variable (time date) in the list is a gene).
     ProblemDefinition* problem;         // Problem reference (planets reference to operate are in there).
     double fitness;                     // Fitness of the individual.
-    double cost;                        // Total cost of the individual based on the cost function: objective and penalty.
     double totalDV = 0.0;               // Total amount of dV. Of that solution.
 
     Individual();
@@ -115,7 +112,6 @@ public:
     ~Population();
 
     void inception();   // let the civilization begin (initis all the individuals to random time dates).
-    void mateIndividuals(Individual parent1, Individual parent2);   // Mates two individuales
 
     // Genetic operators (self explanatory).
     void elitism();
