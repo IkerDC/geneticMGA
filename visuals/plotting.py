@@ -16,6 +16,7 @@ JD2000 = 2451544.50000
 
 count = 0
 
+
 class Planet:
     def __init__(self, name: str, at, coordinates=None, color='gray', orbit_color='gray'):
         self.name = name
@@ -43,7 +44,9 @@ class Planet:
         """Plot the planet's orbit and the location if the coordinates have been passed"""
         plnt = pk.planet.jpl_lp(self.name)
         T = plnt.compute_period(pk.epoch(self.at, julian_date_type="jd")) * SEC2DAY
-        if self.at + T >= 2469807.5:  # Uranus and Neptune have really long periods above 2050 -> Out of range ephemeris
+
+        # Uranus and Neptune have really long periods above 2050 -> Out of range ephemeris
+        if self.at + T >= 2469807.5:
             T = 2469807.5 - self.at - 1
 
         when = np.linspace(0, T, N)
@@ -58,8 +61,10 @@ class Planet:
             y[i] = r[1] / AU
             z[i] = r[2] / AU
 
+        # 3D plot
         ax.plot(x, y, z, color=self.orbit_color)
 
+        # 2D plot
         if ax2d is not None:
             ax2d.plot(x, y, color=self.orbit_color)
 
@@ -75,6 +80,7 @@ class Planet:
         """
         Plot the planet's orbit for the animation.
         Only plots the orbit in a 2D plot. NO location.
+        Ask Iker for further info on this function and all the other animate ones.
         """
         plnt = pk.planet.jpl_lp(self.name)
         T = plnt.compute_period(pk.epoch(self.at, julian_date_type="jd")) * SEC2DAY
@@ -135,11 +141,9 @@ class Transfer:
 
     def plot_animate(self, ax, planets, n):
         """
-        Plot the transfer between the planet of origin and the next one for animation.
-        It will save per each evolution plot as an image to convert to video.
-        Also it does plot the planet location.
-        n: Number of the leg (transfer)
-        T: vector of times to draw the planets location
+        Plot the transfer orbit and planets moving for the animation.
+        Only plots the orbit in a 2D plot. NO location.
+        Ask Iker for further info on this function and all the other animate ones.
         """
         global count
         x = list()
